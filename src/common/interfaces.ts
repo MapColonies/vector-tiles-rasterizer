@@ -9,3 +9,7 @@ export interface OpenApiConfig {
   jsonPath: string;
   uiPath: string;
 }
+
+export interface IServerConfig {
+  port: string;
+}
