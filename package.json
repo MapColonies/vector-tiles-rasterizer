@@ -38,23 +38,16 @@
     }
   },
   "dependencies": {
-    "@godaddy/terminus": "4.7.1",
     "@map-colonies/js-logger": "^0.0.3",
-    "@map-colonies/openapi-express-viewer": "^2.0.1",
-    "@map-colonies/telemetry": "^1.1.0-7",
-    "@opentelemetry/api": "1.0.0-rc.0",
-    "@opentelemetry/api-metrics": "0.19.0",
-    "@opentelemetry/instrumentation-express": "0.16.0",
-    "@opentelemetry/instrumentation-http": "0.19.0",
     "compression": "^1.7.4",
     "config": "^3.3.6",
-    "express": "^4.17.1",
     "fastify": "^3.15.1",
     "fastify-compress": "^3.4.2",
+    "fastify-swagger": "^4.7.0",
     "http-status-codes": "^2.1.4",
     "js-yaml": "^3.14.1",
     "reflect-metadata": "^0.1.13",
-    "swagger-ui-express": "^4.1.6",
+    "secure-json-parse": "^2.4.0",
     "tsyringe": "^4.5.0"
   },
   "devDependencies": {

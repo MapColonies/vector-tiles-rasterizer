@@ -1,23 +1,14 @@
-// import { Router } from 'express';
-import { fastify, FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import { DependencyContainer, FactoryFunction } from 'tsyringe';
+import { FastifyInstance, RegisterOptions, HookHandlerDoneFunction } from 'fastify';
+import { container } from 'tsyringe';
 import { ResourceNameController } from '../controllers/resourceNameController';
 
-// const resourceNameRouterFactory: FactoryFunction<FastifyInstance> = (dependencyContainer) => {
-//   const router = fastify();
-//   const controller = dependencyContainer.resolve(ResourceNameController);
+const resourceNameRoutesRegistry = (fastify: FastifyInstance, _: RegisterOptions, done: HookHandlerDoneFunction): void => {
+  const controller = container.resolve(ResourceNameController);
 
-//   router.get('/', controller.getResource);
-//   router.post('/', controller.createResource);
+  fastify.get('/', controller.getResource);
+  fastify.post('/', controller.createResource);
 
-//   return router;
-// };
+  done();
+};
 
-// export default function (fastify: FastifyInstance, done: Function) {
-//   const controller = dependencyContainer.resolve(ResourceNameController);
-
-//   fastify.get('/', controller.getResource);
-//   fastify.post('/', controller.createResource);
-
-//   done();
-// };
+export { resourceNameRoutesRegistry };

@@ -1,13 +1,14 @@
-import express from 'express';
-import { fastify, FastifyInstance } from 'fastify';
-import bodyParser from 'body-parser';
-import { OpenapiViewerRouter, OpenapiRouterConfig } from '@map-colonies/openapi-express-viewer';
-import { container, inject, injectable } from 'tsyringe';
+import { fastify, FastifyInstance, HookHandlerDoneFunction, RegisterOptions } from 'fastify';
+import { inject, injectable } from 'tsyringe';
 import { Logger } from '@map-colonies/js-logger';
-import { Services } from './common/constants';
-import { IConfig } from './common/interfaces';
-// import resourceNameRouter from './resourceName/routes/resourceNameRouter';
+import * as secureJsonParse from 'secure-json-parse';
 import fastifyCompression, { FastifyCompressOptions } from 'fastify-compress';
+import { FastifyStaticSwaggerOptions, fastifySwagger } from 'fastify-swagger';
+import httpStatus from 'http-status-codes';
+import { Services } from './common/constants';
+import { IConfig, OpenApiConfig, RequestHandler } from './common/interfaces';
+import { resourceNameRoutesRegistry } from './resourceName/routes/resourceNameRouter';
+import { FastifyBodyParserOptions } from './common/types';
 
 @injectable()
 export class ServerBuilder {
@@ -20,39 +21,65 @@ export class ServerBuilder {
   public build(): FastifyInstance {
     this.registerPreRoutesMiddleware();
     this.buildRoutes();
-    this.registerPostRoutesMiddleware();
 
     return this.serverInstance;
   }
 
-  // private buildDocsRoutes(): void {
-  //   const openapiRouter = new OpenapiViewerRouter(this.config.get<OpenapiRouterConfig>('openapiConfig'));
-  //   openapiRouter.setup();
-  //   this.serverInstance.use(this.config.get<string>('openapiConfig.basePath'), openapiRouter.getRouter());
-  // }
-
-  private buildRoutes(): void {
-    // this.serverInstance.route('/resourceName', resourceNameRouterFactory(container));
-    // this.serverInstance.register(resourceNameRouter, { prefix: '/resourceName' });
-    // this.buildDocsRoutes();
-  }
-
   private registerPreRoutesMiddleware(): void {
     if (this.config.get<boolean>('server.response.compression.enabled')) {
-      // this.serverInstance.use(compression(this.config.get<compression.CompressionFilter>('server.response.compression.options')));
       const compressionOptions = this.config.get<FastifyCompressOptions>('server.response.compression.options');
       this.serverInstance.register(fastifyCompression, compressionOptions);
     }
 
-    const bodyParserOptions = this.config.get<bodyParser.Options>('server.request.payload');
+    const bodyParserOptions = this.config.get<FastifyBodyParserOptions>('server.request.payload');
 
-    const jsonParser = bodyParser.json(bodyParserOptions);
-    // this.serverInstance.register(bodyParser, bodyParserOptions);
-
-    const ignorePathRegex = new RegExp(`^${this.config.get<string>('openapiConfig.basePath')}/.*`, 'i');
-    const apiSpecPath = this.config.get<string>('openapiConfig.filePath');
-    // this.serverInstance.use(OpenApiMiddleware({ apiSpec: apiSpecPath, validateRequests: true, ignorePaths: ignorePathRegex }));
+    this.serverInstance.addContentTypeParser('application/json', bodyParserOptions, (req, body: string | Buffer, done) => {
+      let json;
+      try {
+        json = secureJsonParse.parse(body);
+      } catch (err) {
+        err.statusCode = 400;
+        return done(err, undefined);
+      }
+      done(null, json);
+    });
   }
 
-  private registerPostRoutesMiddleware(): void {}
+  private buildRoutes(): void {
+    this.buildProbeRoutes();
+    this.serverInstance.register(resourceNameRoutesRegistry, { prefix: '/resourceName' });
+    this.buildDocsRoutes();
+  }
+
+  private buildDocsRoutes(): void {
+    const { filePath, basePath, uiPath } = this.config.get<OpenApiConfig>('openapiConfig');
+
+    const swaggerOptions: FastifyStaticSwaggerOptions = {
+      mode: 'static',
+      specification: {
+        path: filePath,
+        baseDir: '',
+      },
+      routePrefix: basePath + uiPath,
+      exposeRoute: true,
+    };
+
+    this.serverInstance.register(fastifySwagger, swaggerOptions);
+  }
+
+  private buildProbeRoutes(): void {
+    this.serverInstance.register(this.healthCheckPlugin);
+  }
+
+  private readonly healthCheckPlugin = (fastify: FastifyInstance, _: RegisterOptions, done: HookHandlerDoneFunction) => {
+    fastify.get('/liveness', healthcheckHandler);
+    done();
+  };
 }
+
+const healthcheckHandler: RequestHandler = (request, reply) => {
+  stubHealthcheck();
+  return reply.status(httpStatus.OK).send(':D');
+};
+
+const stubHealthcheck = async (): Promise<void> => Promise.resolve();

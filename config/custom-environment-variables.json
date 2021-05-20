@@ -9,7 +9,8 @@
     "port": "SERVER_PORT",
     "request": {
       "payload": {
-        "limit": "REQUEST_PAYLOAD_LIMIT"
+        "bodyLimit": "REQUEST_PAYLOAD_LIMIT",
+        "parseAs": "REQUEST_PARSE_AS"
       }
     },
     "response": {
