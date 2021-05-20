@@ -1,4 +1,6 @@
-import { fastify, FastifyInstance, HookHandlerDoneFunction, RegisterOptions } from 'fastify';
+// fastify register function
+/* eslint-disable @typescript-eslint/no-floating-promises */
+import { fastify, FastifyInstance } from 'fastify';
 import { inject, injectable } from 'tsyringe';
 import { Logger } from '@map-colonies/js-logger';
 import * as secureJsonParse from 'secure-json-parse';
@@ -6,9 +8,17 @@ import fastifyCompression, { FastifyCompressOptions } from 'fastify-compress';
 import { FastifyStaticSwaggerOptions, fastifySwagger } from 'fastify-swagger';
 import httpStatus from 'http-status-codes';
 import { Services } from './common/constants';
-import { IConfig, OpenApiConfig, RequestHandler } from './common/interfaces';
+import { IConfig, OpenApiConfig, FastifyPluginRegister, RequestHandler } from './common/interfaces';
 import { resourceNameRoutesRegistry } from './resourceName/routes/resourceNameRouter';
 import { FastifyBodyParserOptions } from './common/types';
+import { HttpError } from './common/errors';
+
+const stubHealthcheck = async (): Promise<void> => Promise.resolve();
+
+const healthcheckHandler: RequestHandler = async (request, reply) => {
+  await stubHealthcheck();
+  return reply.status(httpStatus.OK).send(':D');
+};
 
 @injectable()
 export class ServerBuilder {
@@ -36,10 +46,12 @@ export class ServerBuilder {
     this.serverInstance.addContentTypeParser('application/json', bodyParserOptions, (req, body: string | Buffer, done) => {
       let json;
       try {
+        // json must be of type any
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         json = secureJsonParse.parse(body);
-      } catch (err) {
-        err.statusCode = 400;
-        return done(err, undefined);
+      } catch (error) {
+        (error as HttpError).statusCode = httpStatus.BAD_REQUEST;
+        return done(error, undefined);
       }
       done(null, json);
     });
@@ -71,15 +83,8 @@ export class ServerBuilder {
     this.serverInstance.register(this.healthCheckPlugin);
   }
 
-  private readonly healthCheckPlugin = (fastify: FastifyInstance, _: RegisterOptions, done: HookHandlerDoneFunction) => {
+  private readonly healthCheckPlugin: FastifyPluginRegister = (fastify, _, done) => {
     fastify.get('/liveness', healthcheckHandler);
     done();
   };
 }
-
-const healthcheckHandler: RequestHandler = (request, reply) => {
-  stubHealthcheck();
-  return reply.status(httpStatus.OK).send(':D');
-};
-
-const stubHealthcheck = async (): Promise<void> => Promise.resolve();

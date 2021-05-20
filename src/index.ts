@@ -1,4 +1,3 @@
-/* eslint-disable import/first */
 // this import must be called before the first import of tsyring
 import 'reflect-metadata';
 import { Logger } from '@map-colonies/js-logger';
@@ -15,8 +14,6 @@ const port: number = parseInt(serverConfig.port) || DEFAULT_SERVER_PORT;
 const app = getApp();
 
 const logger = container.resolve<Logger>(Services.LOGGER);
-// const stubHealthcheck = async (): Promise<void> => Promise.resolve();
-// const server = createTerminus(app, { healthChecks: { '/liveness': stubHealthcheck, onSignal: container.resolve('onSignal') } });
 
 app.listen(port, () => {
   logger.info(`app started on port ${port}`);

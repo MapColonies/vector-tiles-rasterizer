@@ -1,7 +1,6 @@
 import { Logger } from '@map-colonies/js-logger';
 import { inject, injectable } from 'tsyringe';
 import { Services } from '../../common/constants';
-import { NotFoundError } from '../../common/errors';
 
 const resourceInstance: IResourceNameModel = {
   id: 1,
