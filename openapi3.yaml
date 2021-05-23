@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: service-name
-  description: basic template for map colonies service
+  description: basic template for map colonies service written in fastify
   version: 1.0.0
   license:
     name: MIT
@@ -20,19 +20,24 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/resource'
+                $ref: '#/components/schemas/createdResource'
     post:
       operationId: createResource
       tags:
         - resourceName
       summary: creates a new record of type resource
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/resource'
       responses:
         201:
           description: created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/resource'
+                $ref: '#/components/schemas/createdResource'
         400:
           description: Bad Request
           content:
@@ -45,20 +50,32 @@ components:
       type: object
       required:
         - message
+        - error
+        - statusCode
       properties:
         message:
           type: string
+        error:
+          type: string
+        statusCode:
+          type: number
     resource:
       type: object
       required:
-        - id
         - name
         - description
       properties:
-        id:
-          type: number
-          format: int64
         name:
           type: string
         description:
           type: string
+    createdResource:
+      allOf:
+        - $ref: '#/components/schemas/resource'
+        - type: object
+        - required:
+            - id
+        - properties:
+            id:
+              type: number
+              format: int64

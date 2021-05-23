@@ -1,58 +1,73 @@
-import express from 'express';
-import bodyParser from 'body-parser';
-import compression from 'compression';
-import { OpenapiViewerRouter, OpenapiRouterConfig } from '@map-colonies/openapi-express-viewer';
-import { getErrorHandlerMiddleware } from '@map-colonies/error-express-handler';
-import { middleware as OpenApiMiddleware } from 'express-openapi-validator';
-import { container, inject, injectable } from 'tsyringe';
+// fastify register function
+/* eslint-disable @typescript-eslint/no-floating-promises */
+import { fastify, FastifyInstance } from 'fastify';
+import { inject, injectable } from 'tsyringe';
 import { Logger } from '@map-colonies/js-logger';
-import httpLogger from '@map-colonies/express-access-log-middleware';
+import * as secureJsonParse from 'secure-json-parse';
+import fastifyCompression, { FastifyCompressOptions } from 'fastify-compress';
+import { FastifyStaticSwaggerOptions, fastifySwagger } from 'fastify-swagger';
+import httpStatus from 'http-status-codes';
 import { Services } from './common/constants';
-import { IConfig } from './common/interfaces';
-import { resourceNameRouterFactory } from './resourceName/routes/resourceNameRouter';
+import { IConfig, OpenApiConfig } from './common/interfaces';
+import { resourceNameRoutesRegistry } from './resourceName/routes/resourceNameRouter';
+import { FastifyBodyParserOptions } from './common/types';
+import { HttpError } from './common/errors';
 
 @injectable()
 export class ServerBuilder {
-  private readonly serverInstance: express.Application;
+  private readonly serverInstance: FastifyInstance;
 
   public constructor(@inject(Services.CONFIG) private readonly config: IConfig, @inject(Services.LOGGER) private readonly logger: Logger) {
-    this.serverInstance = express();
+    this.serverInstance = fastify();
   }
 
-  public build(): express.Application {
+  public build(): FastifyInstance {
     this.registerPreRoutesMiddleware();
     this.buildRoutes();
-    this.registerPostRoutesMiddleware();
 
     return this.serverInstance;
   }
 
-  private buildDocsRoutes(): void {
-    const openapiRouter = new OpenapiViewerRouter(this.config.get<OpenapiRouterConfig>('openapiConfig'));
-    openapiRouter.setup();
-    this.serverInstance.use(this.config.get<string>('openapiConfig.basePath'), openapiRouter.getRouter());
+  private registerPreRoutesMiddleware(): void {
+    if (this.config.get<boolean>('server.response.compression.enabled')) {
+      const compressionOptions = this.config.get<FastifyCompressOptions>('server.response.compression.options');
+      this.serverInstance.register(fastifyCompression, compressionOptions);
+    }
+
+    const bodyParserOptions = this.config.get<FastifyBodyParserOptions>('server.request.payload');
+
+    this.serverInstance.addContentTypeParser('application/json', bodyParserOptions, (req, body: string | Buffer, done) => {
+      let json;
+      try {
+        // json must be of type any
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        json = secureJsonParse.parse(body);
+      } catch (error) {
+        (error as HttpError).statusCode = httpStatus.BAD_REQUEST;
+        return done(error, undefined);
+      }
+      done(null, json);
+    });
   }
 
   private buildRoutes(): void {
-    this.serverInstance.use('/resourceName', resourceNameRouterFactory(container));
+    this.serverInstance.register(resourceNameRoutesRegistry, { prefix: '/resourceName' });
     this.buildDocsRoutes();
   }
 
-  private registerPreRoutesMiddleware(): void {
-    this.serverInstance.use(httpLogger({ logger: this.logger }));
+  private buildDocsRoutes(): void {
+    const { filePath, basePath, uiPath } = this.config.get<OpenApiConfig>('openapiConfig');
 
-    if (this.config.get<boolean>('server.response.compression.enabled')) {
-      this.serverInstance.use(compression(this.config.get<compression.CompressionFilter>('server.response.compression.options')));
-    }
+    const swaggerOptions: FastifyStaticSwaggerOptions = {
+      mode: 'static',
+      specification: {
+        path: filePath,
+        baseDir: '',
+      },
+      routePrefix: basePath + uiPath,
+      exposeRoute: true,
+    };
 
-    this.serverInstance.use(bodyParser.json(this.config.get<bodyParser.Options>('server.request.payload')));
-
-    const ignorePathRegex = new RegExp(`^${this.config.get<string>('openapiConfig.basePath')}/.*`, 'i');
-    const apiSpecPath = this.config.get<string>('openapiConfig.filePath');
-    this.serverInstance.use(OpenApiMiddleware({ apiSpec: apiSpecPath, validateRequests: true, ignorePaths: ignorePathRegex }));
-  }
-
-  private registerPostRoutesMiddleware(): void {
-    this.serverInstance.use(getErrorHandlerMiddleware());
+    this.serverInstance.register(fastifySwagger, swaggerOptions);
   }
 }

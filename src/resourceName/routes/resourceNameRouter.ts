@@ -1,15 +1,14 @@
-import { Router } from 'express';
-import { FactoryFunction } from 'tsyringe';
+import { container } from 'tsyringe';
+import { FastifyPluginRegister } from '../../common/interfaces';
 import { ResourceNameController } from '../controllers/resourceNameController';
 
-const resourceNameRouterFactory: FactoryFunction<Router> = (dependencyContainer) => {
-  const router = Router();
-  const controller = dependencyContainer.resolve(ResourceNameController);
+const resourceNameRoutesRegistry: FastifyPluginRegister = (fastify, _, done) => {
+  const controller = container.resolve(ResourceNameController);
 
-  router.get('/', controller.getResource);
-  router.post('/', controller.createResource);
+  fastify.get('/', controller.getResource);
+  fastify.post('/', controller.createResource);
 
-  return router;
+  done();
 };
 
-export { resourceNameRouterFactory };
+export { resourceNameRoutesRegistry };

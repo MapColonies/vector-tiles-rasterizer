@@ -12,7 +12,8 @@
     "port": "8080",
     "request": {
       "payload": {
-        "limit": "1mb"
+        "bodyLimit": "1mb",
+        "parseAs": "string"
       }
     },
     "response": {
