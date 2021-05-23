@@ -1,51 +1,90 @@
 openapi: 3.0.1
 info:
-  title: service-name
-  description: basic template for map colonies service written in fastify
+  title: vector-tiles-rasterizer
+  description: A proxy server for rasterizing vector tiles
   version: 1.0.0
   license:
-    name: MIT
-    url: https://opensource.org/licenses/MIT
+    name: BSD-2-Clause
+    url: https://opensource.org/licenses/BSD-2-Clause
 
 paths:
-  /resourceName:
+  /{z}/{x}/{y}.png:
     get:
-      operationId: getResourceName
+      operationId: getTiles
       tags:
-        - resourceName
-      summary: gets the resource
+        - rasterize
+      summary: get raster tiles by z, x, y
+      parameters:
+        - in: path
+          name: 'z'
+          required: true
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/tilePosition'
+              - maximum: 22
+          description: zoom level
+        - in: path
+          name: 'x'
+          required: true
+          schema:
+            $ref: '#/components/schemas/tilePosition'
+          description: x axis tile
+        - in: path
+          name: 'y'
+          required: true
+          schema:
+            $ref: '#/components/schemas/tilePosition'
+          description: y axis tile
       responses:
         200:
-          description: OK
+          description: the requested rasterized image
           content:
-            application/json:
+            image/png:
               schema:
-                $ref: '#/components/schemas/createdResource'
-    post:
-      operationId: createResource
-      tags:
-        - resourceName
-      summary: creates a new record of type resource
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/resource'
-      responses:
-        201:
-          description: created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/createdResource'
+                type: string
+                format: binary
         400:
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
+          $ref: '#/components/responses/BadRequest'
+        404:
+          $ref: '#/components/responses/NotFound'
+        '5XX':
+          $ref: '#/components/responses/UnexpectedError'
 components:
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/error'
+              - properties:
+                  statusCode:
+                    enum:
+                      - 400
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/error'
+              - properties:
+                  statusCode:
+                    enum:
+                      - 404
+    UnexpectedError:
+      description: Unexpected Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
   schemas:
+    tilePosition:
+      type: number
+      format: int32
+      default: 0
+      minimum: 0
     error:
       type: object
       required:
@@ -59,23 +98,4 @@ components:
           type: string
         statusCode:
           type: number
-    resource:
-      type: object
-      required:
-        - name
-        - description
-      properties:
-        name:
-          type: string
-        description:
-          type: string
-    createdResource:
-      allOf:
-        - $ref: '#/components/schemas/resource'
-        - type: object
-        - required:
-            - id
-        - properties:
-            id:
-              type: number
-              format: int64
+          format: int32
