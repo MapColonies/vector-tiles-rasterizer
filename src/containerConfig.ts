@@ -10,7 +10,7 @@ function registerExternalValues(): void {
   container.register(Services.LOGGER, { useValue: logger });
   container.register('onSignal', {
     useValue: async (): Promise<void> => {
-      await Promise.all([]);
+      await Promise.resolve();
     },
   });
 }

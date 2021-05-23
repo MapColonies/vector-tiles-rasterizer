@@ -18,8 +18,6 @@ RUN apt-get -qq update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# COPY . /usr/src/app
-
 RUN apt-get update -yq \
     && apt-get -yq install gnupg ca-certificates \
     && curl -L https://deb.nodesource.com/setup_14.x | bash \
@@ -39,11 +37,8 @@ RUN npm run build
 FROM ubuntu:20.04 AS production
 
 ENV DEBIAN_FRONTEND=noninteractive
-
 ENV NODE_ENV=production
 ENV SERVER_PORT=8080
-ENV CHOKIDAR_USEPOLLING=1
-ENV CHOKIDAR_INTERVAL=500
 
 RUN apt-get update -yq \
     && apt-get -yq install curl gnupg ca-certificates software-properties-common dumb-init \
@@ -66,11 +61,8 @@ RUN apt-get -qq update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# RUN apk add dumb-init
-
 WORKDIR /usr/src/app
 
-# COPY --from=build /usr/src/app /app
 COPY package*.json ./
 
 RUN npm ci --only=production
@@ -78,14 +70,12 @@ RUN npm ci --only=production
 COPY --from=build /tmp/buildApp/dist .
 COPY ./config ./config
 COPY ./docker-entrypoint.sh .
-COPY ./run.sh .
 
 RUN chmod 777 /usr/src/app/docker-entrypoint.sh
-RUN chmod 777 /usr/src/app/run.sh
 
 RUN useradd -ms /bin/bash user && usermod -a -G root user
 
 USER user
 EXPOSE 8080
 
-CMD ./run.sh
+CMD ./docker-entrypoint.sh

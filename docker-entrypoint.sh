@@ -12,7 +12,7 @@ trap handle INT TERM
 
 if ! which -- "${1}"; then
   # first arg is not an executable
-  xvfb-run -a --server-args="-screen 0 1024x768x24" -- node ./src/index.js "$@" &
+  xvfb-run -a --server-args="-screen 0 1024x768x24" -- dumb-init node --max_old_space_size=512 ./index.js "$@" &
 	# Wait exits immediately on signals which have traps set. Store return value and wait
 	# again for all jobs to actually complete before continuing.
 	wait $! || RETVAL=$?
