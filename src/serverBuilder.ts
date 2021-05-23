@@ -8,17 +8,10 @@ import fastifyCompression, { FastifyCompressOptions } from 'fastify-compress';
 import { FastifyStaticSwaggerOptions, fastifySwagger } from 'fastify-swagger';
 import httpStatus from 'http-status-codes';
 import { Services } from './common/constants';
-import { IConfig, OpenApiConfig, FastifyPluginRegister, RequestHandler } from './common/interfaces';
+import { IConfig, OpenApiConfig } from './common/interfaces';
 import { resourceNameRoutesRegistry } from './resourceName/routes/resourceNameRouter';
 import { FastifyBodyParserOptions } from './common/types';
 import { HttpError } from './common/errors';
-
-const stubHealthcheck = async (): Promise<void> => Promise.resolve();
-
-const healthcheckHandler: RequestHandler = async (request, reply) => {
-  await stubHealthcheck();
-  return reply.status(httpStatus.OK).send(':D');
-};
 
 @injectable()
 export class ServerBuilder {
@@ -58,7 +51,6 @@ export class ServerBuilder {
   }
 
   private buildRoutes(): void {
-    this.buildProbeRoutes();
     this.serverInstance.register(resourceNameRoutesRegistry, { prefix: '/resourceName' });
     this.buildDocsRoutes();
   }
@@ -78,13 +70,4 @@ export class ServerBuilder {
 
     this.serverInstance.register(fastifySwagger, swaggerOptions);
   }
-
-  private buildProbeRoutes(): void {
-    this.serverInstance.register(this.healthCheckPlugin);
-  }
-
-  private readonly healthCheckPlugin: FastifyPluginRegister = (fastify, _, done) => {
-    fastify.get('/liveness', healthcheckHandler);
-    done();
-  };
 }
