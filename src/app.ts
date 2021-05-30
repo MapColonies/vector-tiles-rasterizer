@@ -3,9 +3,9 @@ import { FastifyInstance } from 'fastify';
 import { registerExternalValues } from './containerConfig';
 import { ServerBuilder } from './serverBuilder';
 
-function getApp(): FastifyInstance {
+async function getApp(): Promise<FastifyInstance> {
   registerExternalValues();
-  const app = container.resolve(ServerBuilder).build();
+  const app = await container.resolve(ServerBuilder).build();
   return app;
 }
 

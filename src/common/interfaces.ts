@@ -20,6 +20,24 @@ export interface IServerConfig {
   port: string;
 }
 
+export interface IGlobalConfig {
+  appInitTime: string;
+}
+
+export interface IApplicationConfig {
+  styleFilePath: string;
+  tileSize: number;
+  ratio: number;
+  resources: {
+    min: number;
+    max: number;
+  };
+  zoom: {
+    min: number;
+    max: number;
+  };
+}
+
 // ReqBody must be of type any
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface RequestHandler<Params = { [key: string]: string }, ReqBody = any, ReqQuery = ParsedQs> {

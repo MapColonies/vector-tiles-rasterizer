@@ -6,3 +6,7 @@ export interface HttpError extends Error {
 }
 
 export class NotFoundError extends Error {}
+
+export class OutOfBoundsError extends Error {}
+
+export class RequestFailedError extends Error {}

@@ -21,5 +21,38 @@
         }
       }
     }
+  },
+  "application": {
+    "styleFilePath": "STYLE_FILE_PATH",
+    "tileSize": {
+      "__name": "TILE_SIZE",
+      "__format": "number"
+    },
+    "ratio": {
+      "__name": "RATIO",
+      "__format": "number"
+    },
+    "pool": {
+      "resources": {
+        "min": {
+          "__name": "MIN_RESOURCES",
+          "__format": "number"
+        },
+        "max": {
+          "__name": "MAX_RESOURCES",
+          "__format": "number"
+        }
+      }
+    },
+    "zoom": {
+      "min": {
+        "__name": "MIN_ZOOM",
+        "__format": "number"
+      },
+      "max": {
+        "__name": "MAX_ZOOM",
+        "__format": "number"
+      }
+    }
   }
 }

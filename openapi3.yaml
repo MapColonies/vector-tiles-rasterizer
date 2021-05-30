@@ -35,14 +35,35 @@ paths:
           schema:
             $ref: '#/components/schemas/tilePosition'
           description: y axis tile
+        - in: header
+          name: If-Modified-Since
+          required: false
+          schema:
+            type: string
+        - in: header
+          name: Cache-Control
+          required: false
+          schema:
+            type: string
       responses:
         200:
           description: the requested rasterized image
+          headers:
+            Last-Modified:
+              $ref: '#/components/headers/last-modified'
           content:
             image/png:
               schema:
-                type: string
-                format: binary
+                $ref: '#/components/schemas/image'
+        304:
+          description: the previously cached requested rasterized image
+          headers:
+            Last-Modified:
+              $ref: '#/components/headers/last-modified'
+          content:
+            image/png:
+              schema:
+                $ref: '#/components/schemas/image'
         400:
           $ref: '#/components/responses/BadRequest'
         404:
@@ -85,6 +106,9 @@ components:
       format: int32
       default: 0
       minimum: 0
+    image:
+      type: string
+      format: binary
     error:
       type: object
       required:
@@ -99,3 +123,8 @@ components:
         statusCode:
           type: number
           format: int32
+  headers:
+    last-modified:
+      schema:
+        type: string
+      description: The last modified timestamp, used for caching

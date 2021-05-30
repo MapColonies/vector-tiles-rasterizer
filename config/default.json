@@ -22,5 +22,18 @@
         "options": null
       }
     }
+  },
+  "application": {
+    "styleFilePath": "/usr/src/app/resources/styles/zurich-style.json",
+    "tileSize": 256,
+    "ratio": 1,
+    "resources": {
+      "min": 12,
+      "max": 24
+    },
+    "zoom": {
+      "min": 0,
+      "max": 22
+    }
   }
 }

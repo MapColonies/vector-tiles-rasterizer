@@ -1,15 +1,13 @@
-// fastify register function
-/* eslint-disable @typescript-eslint/no-floating-promises */
 import { fastify, FastifyInstance } from 'fastify';
-import { inject, injectable } from 'tsyringe';
 import { Logger } from '@map-colonies/js-logger';
+import { inject, injectable } from 'tsyringe';
 import * as secureJsonParse from 'secure-json-parse';
 import fastifyCompression, { FastifyCompressOptions } from 'fastify-compress';
 import { FastifyStaticSwaggerOptions, fastifySwagger } from 'fastify-swagger';
 import httpStatus from 'http-status-codes';
 import { Services } from './common/constants';
-import { IConfig, OpenApiConfig } from './common/interfaces';
-import { resourceNameRoutesRegistry } from './resourceName/routes/resourceNameRouter';
+import { IConfig, IGlobalConfig, OpenApiConfig } from './common/interfaces';
+import { tileRoutesRegistry } from './tile/routes/tileRouter';
 import { FastifyBodyParserOptions } from './common/types';
 import { HttpError } from './common/errors';
 
@@ -17,21 +15,26 @@ import { HttpError } from './common/errors';
 export class ServerBuilder {
   private readonly serverInstance: FastifyInstance;
 
-  public constructor(@inject(Services.CONFIG) private readonly config: IConfig, @inject(Services.LOGGER) private readonly logger: Logger) {
+  public constructor(
+    @inject(Services.CONFIG) private readonly config: IConfig,
+    @inject(Services.LOGGER) private readonly logger: Logger,
+    @inject(Services.GLOBAL) private readonly global: IGlobalConfig
+  ) {
     this.serverInstance = fastify();
   }
 
-  public build(): FastifyInstance {
-    this.registerPreRoutesMiddleware();
-    this.buildRoutes();
+  public async build(): Promise<FastifyInstance> {
+    await this.registerPreRoutesMiddleware();
+    this.buildHooks();
+    await this.buildRoutes();
 
     return this.serverInstance;
   }
 
-  private registerPreRoutesMiddleware(): void {
+  private async registerPreRoutesMiddleware(): Promise<void> {
     if (this.config.get<boolean>('server.response.compression.enabled')) {
       const compressionOptions = this.config.get<FastifyCompressOptions>('server.response.compression.options');
-      this.serverInstance.register(fastifyCompression, compressionOptions);
+      await this.serverInstance.register(fastifyCompression, compressionOptions);
     }
 
     const bodyParserOptions = this.config.get<FastifyBodyParserOptions>('server.request.payload');
@@ -50,12 +53,12 @@ export class ServerBuilder {
     });
   }
 
-  private buildRoutes(): void {
-    this.serverInstance.register(resourceNameRoutesRegistry, { prefix: '/resourceName' });
-    this.buildDocsRoutes();
+  private async buildRoutes(): Promise<void> {
+    await this.serverInstance.register(tileRoutesRegistry);
+    await this.buildDocsRoutes();
   }
 
-  private buildDocsRoutes(): void {
+  private async buildDocsRoutes(): Promise<void> {
     const { filePath, basePath, uiPath } = this.config.get<OpenApiConfig>('openapiConfig');
 
     const swaggerOptions: FastifyStaticSwaggerOptions = {
@@ -68,6 +71,19 @@ export class ServerBuilder {
       exposeRoute: true,
     };
 
-    this.serverInstance.register(fastifySwagger, swaggerOptions);
+    await this.serverInstance.register(fastifySwagger, swaggerOptions);
+  }
+
+  private buildHooks(): void {
+    this.serverInstance.addHook('onRequest', async (request, reply) => {
+      const modifiedSince = request.headers['if-modified-since'];
+      const cacheControl = request.headers['cache-control'];
+      // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+      if (modifiedSince !== undefined && (cacheControl === undefined || cacheControl.indexOf('no-cache') === -1)) {
+        if (new Date(this.global.appInitTime) <= new Date(modifiedSince)) {
+          return reply.code(httpStatus.NOT_MODIFIED).send();
+        }
+      }
+    });
   }
 }
