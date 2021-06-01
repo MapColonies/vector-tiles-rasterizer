@@ -1,14 +1,14 @@
-# instructions for running the vector-tiles-rasterizer
+# vector-tiles-rasterizer example
 
-before running the server we must provide a compatible environment,
+before running the server we must provide a compatible environment to serve the vector-tiles and fonts,
 
-1. serve vector-tiles, we'll use the docker image of `tileserver-gl` for simplicity
+1. to serve vector-tiles and fonts, we'll use the docker image of `tileserver-gl` for simplicity
 
 ```docker
 docker run --rm -it --network host -p 8080:80 -u 0 maptiler/tileserver-gl
 ```
 
-the image will download mbtiles sample data of zurich and will serve the vector tiles on port 80
+the image will download mbtiles sample data of zurich and will serve the data on port 80
 
 2. clone the repository
 ```sh
@@ -25,15 +25,18 @@ cd vector-tiles-rasterizer
 
 5. build the `vector-tiles-rasterizer` image
 ```docker
-docker build -f ./Dockerfile --rm -t vector-tiles-rasterizer:latest .
+docker build --rm -f ./Dockerfile -t vector-tiles-rasterizer:latest .
 ```
 
 6. run the image
 ```docker
-docker run --rm --network host -e APP_STYLE_FILE_PATH=/usr/src/app/styles/zurich-style.json -v /path/to/vector-tiles-rasterizer/example/styles:/usr/src/app/styles -it --name vtr vector-tiles-rasterizer:latest
+docker run --rm --network host \
+-v /path/to/vector-tiles-rasterizer/example/styles:/mnt/styles \
+-e APP_STYLE_FILE_PATH=/mnt/styles/zurich-style.json \
+-it --name vtr vector-tiles-rasterizer:latest
 ```
 
-`APP_STYLE_FILE_PATH` - the path to the style file
+`APP_STYLE_FILE_PATH` - the path to the style file.
 `APP_TILE_SIZE` - the tile size, 256 or 512. defaults to 256.
 
 the `vector-tiles-rasterizer` server is up and running on port 8080
