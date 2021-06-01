@@ -30,7 +30,7 @@ declare module '@naturalatlas/mapbox-gl-native' {
   export class Map {
     public constructor(options: RenderOptions);
 
-    public load(style: Record<string, unknown>): void;
+    public load(style: unknown): void;
     public release(): void;
     public render(params: RenderParams, callback: RenderCallback): void;
   }

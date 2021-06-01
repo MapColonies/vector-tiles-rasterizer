@@ -1,10 +1,11 @@
+import * as fs from 'fs/promises';
 import { container } from 'tsyringe';
 import config from 'config';
 import jsLogger, { LoggerOptions } from '@map-colonies/js-logger';
 import { Services } from './common/constants';
 import { IApplicationConfig, IGlobalConfig } from './common/interfaces';
 
-function registerExternalValues(): void {
+async function registerExternalValues(): Promise<void> {
   const loggerConfig = config.get<LoggerOptions>('logger');
   const logger = jsLogger({ ...loggerConfig, prettyPrint: false });
   container.register(Services.LOGGER, { useValue: logger });
@@ -14,8 +15,10 @@ function registerExternalValues(): void {
   const applicationConfig = config.get<IApplicationConfig>('application');
   container.register(Services.APPLICATION, { useValue: applicationConfig });
 
+  const styleContent: unknown = JSON.parse(await fs.readFile(applicationConfig.styleFilePath, 'utf-8'));
   const global: IGlobalConfig = {
     appInitTime: new Date().toUTCString(),
+    styleContent,
   };
   container.register(Services.GLOBAL, { useValue: global });
 }

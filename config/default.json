@@ -24,10 +24,10 @@
     }
   },
   "application": {
-    "styleFilePath": "/usr/src/app/resources/styles/zurich-style.json",
+    "styleFilePath": "",
     "tileSize": 256,
     "ratio": 1,
-    "resources": {
+    "poolResources": {
       "min": 12,
       "max": 24
     },

@@ -1,15 +1,15 @@
 import { fastify, FastifyInstance } from 'fastify';
 import { Logger } from '@map-colonies/js-logger';
 import { inject, injectable } from 'tsyringe';
-import * as secureJsonParse from 'secure-json-parse';
 import fastifyCompression, { FastifyCompressOptions } from 'fastify-compress';
 import { FastifyStaticSwaggerOptions, fastifySwagger } from 'fastify-swagger';
-import httpStatus from 'http-status-codes';
+
 import { Services } from './common/constants';
 import { IConfig, IGlobalConfig, OpenApiConfig } from './common/interfaces';
 import { tileRoutesRegistry } from './tile/routes/tileRouter';
 import { FastifyBodyParserOptions } from './common/types';
-import { HttpError } from './common/errors';
+import { jsonParserHook } from './common/hooks/jsonParser';
+import { onRequestHookWrapper } from './common/hooks/onRequest';
 
 @injectable()
 export class ServerBuilder {
@@ -38,19 +38,11 @@ export class ServerBuilder {
     }
 
     const bodyParserOptions = this.config.get<FastifyBodyParserOptions>('server.request.payload');
+    this.serverInstance.addContentTypeParser('application/json', bodyParserOptions, jsonParserHook);
+  }
 
-    this.serverInstance.addContentTypeParser('application/json', bodyParserOptions, (req, body: string | Buffer, done) => {
-      let json;
-      try {
-        // json must be of type any
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        json = secureJsonParse.parse(body);
-      } catch (error) {
-        (error as HttpError).statusCode = httpStatus.BAD_REQUEST;
-        return done(error, undefined);
-      }
-      done(null, json);
-    });
+  private buildHooks(): void {
+    this.serverInstance.addHook('onRequest', onRequestHookWrapper(this.global.appInitTime));
   }
 
   private async buildRoutes(): Promise<void> {
@@ -72,18 +64,5 @@ export class ServerBuilder {
     };
 
     await this.serverInstance.register(fastifySwagger, swaggerOptions);
-  }
-
-  private buildHooks(): void {
-    this.serverInstance.addHook('onRequest', async (request, reply) => {
-      const modifiedSince = request.headers['if-modified-since'];
-      const cacheControl = request.headers['cache-control'];
-      // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-      if (modifiedSince !== undefined && (cacheControl === undefined || cacheControl.indexOf('no-cache') === -1)) {
-        if (new Date(this.global.appInitTime) <= new Date(modifiedSince)) {
-          return reply.code(httpStatus.NOT_MODIFIED).send();
-        }
-      }
-    });
   }
 }

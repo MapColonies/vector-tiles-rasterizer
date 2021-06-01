@@ -1,19 +1,21 @@
 import { Logger } from '@map-colonies/js-logger';
 import httpStatus from 'http-status-codes';
 import { injectable, inject } from 'tsyringe';
+import { lookup } from 'mime-types';
 
 import { Services } from '../../common/constants';
 import { IGlobalConfig, RequestHandler } from '../../common/interfaces';
 import { HttpError, OutOfBoundsError } from '../../common/errors';
 import { TileManager } from '../models/tileManager';
 
-interface GetTileParams {
+type GetTileHandler = RequestHandler<GetTileParams>;
+const mimeType = lookup('png') as string;
+
+export interface GetTileParams {
   z: string;
   x: string;
   y: string;
 }
-
-type GetTileHandler = RequestHandler<GetTileParams>;
 
 @injectable()
 export class TileController {
@@ -27,7 +29,7 @@ export class TileController {
     const { x, y, z } = request.params;
     const [xNum, yNum, zNum] = [x, y, z].map((value) => +value);
 
-    let tileBuffer = {};
+    let tileBuffer: Buffer;
     try {
       tileBuffer = await this.manager.getTile(zNum, xNum, yNum);
     } catch (error) {
@@ -37,6 +39,6 @@ export class TileController {
       throw error;
     }
 
-    return reply.code(httpStatus.OK).header('Last-Modified', this.global.appInitTime).type('image/png').send(tileBuffer);
+    return reply.code(httpStatus.OK).header('Last-Modified', this.global.appInitTime).type(mimeType).send(tileBuffer);
   };
 }

@@ -71,8 +71,6 @@ COPY --from=build /tmp/buildApp/dist .
 COPY ./config ./config
 COPY ./docker-entrypoint.sh .
 
-COPY ./resources ./resources
-
 RUN chmod 777 /usr/src/app/docker-entrypoint.sh
 
 RUN useradd -ms /bin/bash user && usermod -a -G root user

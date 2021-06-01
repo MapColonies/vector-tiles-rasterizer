@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+    crossorigin=""></script>
+    <script src='https://api.tiles.mapbox.com/mapbox.js/v1.6.4/mapbox.js'></script>
+    <style type="text/css">
+    body { margin:0; padding:0; }
+    #mapid {
+        position:absolute;
+        top:0;
+        bottom:0;
+        width:100%;
+    }
+    #location {
+        display: block;
+        margin-top: 0.67em;
+        margin-bottom: 0.67em;
+        margin-left: 0;
+        margin-right: 0;
+        position: absolute;
+        bottom: 0.5%;
+        right: 0;
+    }
+    </style>
+</head>
+<body>
+    <div>
+        <div id="mapid"></div>
+        <p id=location></p>
+    </div>
+    <script type="text/javascript">
+    let map = L.map('mapid')
+    .setView([0, 0], 1);
+
+    const calculateLocation = () => {
+        const lat = map.getCenter().lat.toFixed(4);
+        const lng = map.getCenter().lng.toFixed(4);
+        const zoom = map.getZoom();
+        document.getElementById('location').innerHTML=zoom + '/' + lat + '/' + lng
+    }
+
+    L.tileLayer('http://localhost:8080/{z}/{x}/{y}.png', {
+        maxZoom: 22,
+        tileSize: 256, // 512
+        zoomOffset: 0 // -1
+    }).addTo(map);
+
+    calculateLocation()
+
+    map.on("move", function () {
+        calculateLocation();
+    })
+    </script>
+</body>
+</html>

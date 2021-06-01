@@ -23,34 +23,32 @@
     }
   },
   "application": {
-    "styleFilePath": "STYLE_FILE_PATH",
+    "styleFilePath": "APP_STYLE_FILE_PATH",
     "tileSize": {
-      "__name": "TILE_SIZE",
+      "__name": "APP_TILE_SIZE",
       "__format": "number"
     },
     "ratio": {
-      "__name": "RATIO",
+      "__name": "APP_RATIO",
       "__format": "number"
     },
-    "pool": {
-      "resources": {
-        "min": {
-          "__name": "MIN_RESOURCES",
-          "__format": "number"
-        },
-        "max": {
-          "__name": "MAX_RESOURCES",
-          "__format": "number"
-        }
+    "poolResources": {
+      "min": {
+        "__name": "APP_POOL_RESOURCES_MIN",
+        "__format": "number"
+      },
+      "max": {
+        "__name": "APP_POOL_RESOURCES_MAX",
+        "__format": "number"
       }
     },
     "zoom": {
       "min": {
-        "__name": "MIN_ZOOM",
+        "__name": "APP_ZOOM_MIN",
         "__format": "number"
       },
       "max": {
-        "__name": "MAX_ZOOM",
+        "__name": "APP_ZOOM_MAX",
         "__format": "number"
       }
     }

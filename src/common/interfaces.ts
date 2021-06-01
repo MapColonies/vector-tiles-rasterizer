@@ -22,13 +22,14 @@ export interface IServerConfig {
 
 export interface IGlobalConfig {
   appInitTime: string;
+  styleContent: unknown;
 }
 
 export interface IApplicationConfig {
   styleFilePath: string;
   tileSize: number;
   ratio: number;
-  resources: {
+  poolResources: {
     min: number;
     max: number;
   };
@@ -38,9 +39,7 @@ export interface IApplicationConfig {
   };
 }
 
-// ReqBody must be of type any
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface RequestHandler<Params = { [key: string]: string }, ReqBody = any, ReqQuery = ParsedQs> {
+export interface RequestHandler<Params = { [key: string]: string }, ReqBody = unknown, ReqQuery = ParsedQs> {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   (request: FastifyRequest<{ Params: Params; Body: ReqBody; Querystring: ReqQuery }>, reply: FastifyReply): void;
 }

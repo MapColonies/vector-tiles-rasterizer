@@ -4,7 +4,7 @@ import { registerExternalValues } from './containerConfig';
 import { ServerBuilder } from './serverBuilder';
 
 async function getApp(): Promise<FastifyInstance> {
-  registerExternalValues();
+  await registerExternalValues();
   const app = await container.resolve(ServerBuilder).build();
   return app;
 }
