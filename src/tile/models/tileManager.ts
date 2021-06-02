@@ -40,7 +40,9 @@ export class TileManager {
   }
 
   public async getTile(z: number, x: number, y: number): Promise<Buffer> {
-    this.validateTileBounds(z, x, y);
+    if (!this.isTileInBounds(z, x, y)) {
+      throw new OutOfBoundsError(`tile request for z: ${z}, x: ${x}, y: ${y} is out of bounds.`);
+    }
 
     const { tileSize } = this.application;
 
@@ -149,10 +151,8 @@ export class TileManager {
     });
   }
 
-  private validateTileBounds(z: number, x: number, y: number): void {
-    if (!this.isZoomValid(z) || !this.isAxisTileValid(x, z) || !this.isAxisTileValid(y, z)) {
-      throw new OutOfBoundsError(`tile request for z: ${z}, x: ${x}, y: ${y} is out of bounds.`);
-    }
+  private isTileInBounds(z: number, x: number, y: number): boolean {
+    return this.isZoomValid(z) && this.isAxisTileValid(x, z) && this.isAxisTileValid(y, z);
   }
 
   private isZoomValid(z: number): boolean {
