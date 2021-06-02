@@ -1,3 +1,4 @@
+import { get } from 'config';
 import { Logger } from '@map-colonies/js-logger';
 import SphericalMercator from '@mapbox/sphericalmercator';
 import { inject, injectable } from 'tsyringe';
@@ -23,6 +24,20 @@ enum BufferChannel {
   ALPHA,
 }
 
+const zoomSettings = get<{ min: number; max: number }>('application.zoom');
+
+const isZoomValid = (z: number): boolean => {
+  return z >= zoomSettings.min && z <= zoomSettings.max;
+};
+
+const isAxisTileValid = (axisTileNumber: number, z: number): boolean => {
+  return axisTileNumber >= 0 && axisTileNumber <= POWERS_OF_TWO_PER_ZOOM_LEVEL[z];
+};
+
+const isTileInBounds = (z: number, x: number, y: number): boolean => {
+  return isZoomValid(z) && isAxisTileValid(x, z) && isAxisTileValid(y, z);
+};
+
 @injectable()
 export class TileManager {
   private readonly renderersPool: Pool<Map>;
@@ -40,7 +55,7 @@ export class TileManager {
   }
 
   public async getTile(z: number, x: number, y: number): Promise<Buffer> {
-    if (!this.isTileInBounds(z, x, y)) {
+    if (!isTileInBounds(z, x, y)) {
       throw new OutOfBoundsError(`tile request for z: ${z}, x: ${x}, y: ${y} is out of bounds.`);
     }
 
@@ -149,18 +164,5 @@ export class TileManager {
         renderer.release();
       },
     });
-  }
-
-  private isTileInBounds(z: number, x: number, y: number): boolean {
-    return this.isZoomValid(z) && this.isAxisTileValid(x, z) && this.isAxisTileValid(y, z);
-  }
-
-  private isZoomValid(z: number): boolean {
-    const { zoom } = this.application;
-    return z >= zoom.min && z <= zoom.max;
-  }
-
-  private isAxisTileValid(axisTileNumber: number, z: number): boolean {
-    return axisTileNumber >= 0 && axisTileNumber <= POWERS_OF_TWO_PER_ZOOM_LEVEL[z];
   }
 }
