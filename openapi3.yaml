@@ -66,8 +66,6 @@ paths:
                 $ref: '#/components/schemas/image'
         400:
           $ref: '#/components/responses/BadRequest'
-        404:
-          $ref: '#/components/responses/NotFound'
         '5XX':
           $ref: '#/components/responses/UnexpectedError'
 components:
@@ -83,17 +81,6 @@ components:
                   statusCode:
                     enum:
                       - 400
-    NotFound:
-      description: Not Found
-      content:
-        application/json:
-          schema:
-            allOf:
-              - $ref: '#/components/schemas/error'
-              - properties:
-                  statusCode:
-                    enum:
-                      - 404
     UnexpectedError:
       description: Unexpected Error
       content:

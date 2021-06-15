@@ -15,10 +15,6 @@ module.exports = {
     '!<rootDir>/src/*',
   ],
   coverageDirectory: '<rootDir>/coverage',
-  reporters: [
-    'default',
-    ['jest-html-reporters', { multipleReportsUnitePath: './reports', pageTitle: 'unit', publicPath: './reports', filename: 'unit.html' }],
-  ],
   rootDir: '../../../.',
   setupFiles: ['<rootDir>/tests/configurations/jest.setup.js'],
   preset: 'ts-jest',
@@ -29,6 +25,11 @@ module.exports = {
       functions: 80,
       lines: 80,
       statements: -10,
+    },
+  },
+  globals: {
+    'ts-jest': {
+      tsConfig: 'tsconfig.test.json',
     },
   },
 };

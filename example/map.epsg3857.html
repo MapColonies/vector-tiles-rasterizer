@@ -35,7 +35,9 @@
         <p id=location></p>
     </div>
     <script type="text/javascript">
-    let map = L.map('mapid')
+    let map = L.map('mapid', {
+        crs: L.CRS.EPSG3857,
+    })
     .setView([0, 0], 1);
 
     const calculateLocation = () => {
@@ -47,9 +49,13 @@
 
     L.tileLayer('http://localhost:8080/{z}/{x}/{y}.png', {
         maxZoom: 22,
-        tileSize: 256, // 512
-        zoomOffset: 0 // -1
+        tileSize: 256,
+        zoomOffset: 0,
+        attribution: 'EPSG3857',
+        crs: L.CRS.EPSG3857
     }).addTo(map);
+
+    L.marker([40.697553, -74.007635]).addTo(map);
 
     calculateLocation()
 

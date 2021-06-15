@@ -6,7 +6,7 @@ import { container } from 'tsyringe';
 import { get } from 'config';
 
 import { IServerConfig } from './common/interfaces';
-import { DEFAULT_SERVER_PORT, Services } from './common/constants';
+import { DEFAULT_SERVER_PORT, DEFAULT_APP_ADDRESS, Services } from './common/constants';
 import { getApp } from './app';
 
 const serverConfig = get<IServerConfig>('server');
@@ -18,7 +18,7 @@ const stubHealthcheck = async (): Promise<void> => Promise.resolve();
 async function initializeApp(): Promise<void> {
   const app = await getApp();
   createTerminus(app.server, { healthChecks: { '/liveness': stubHealthcheck } });
-  await app.listen(port);
+  await app.listen(port, DEFAULT_APP_ADDRESS);
 }
 
 void initializeApp()

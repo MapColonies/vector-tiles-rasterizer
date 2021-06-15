@@ -26,6 +26,7 @@ declare module 'advanced-pool' {
   export class Pool<T> {
     public acquire: (client: ObjectCallback<T>, queueParam?: unknown) => void;
     public release: (object: T) => void;
+    public close: () => void;
     public constructor(options: PoolOptions<T>);
   }
 }

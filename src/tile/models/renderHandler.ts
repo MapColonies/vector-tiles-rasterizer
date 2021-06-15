@@ -1,12 +1,14 @@
+import { IncomingHttpHeaders } from 'http';
+import { Readable } from 'stream';
 import { URL } from 'url';
 import { gunzip } from 'zlib';
 import { promisify } from 'util';
 import { inject, injectable } from 'tsyringe';
 import { Logger } from '@map-colonies/js-logger';
-import { Client } from 'undici';
+import axios, { AxiosResponse } from 'axios';
 import httpStatus from 'http-status-codes';
-
 import { RenderOptions, RequestCallback, RenderRequset, RenderResponse } from '@naturalatlas/mapbox-gl-native';
+
 import { NotFoundError, RequestFailedError } from '../../common/errors';
 import { Services } from '../../common/constants';
 
@@ -37,33 +39,33 @@ export class RenderHandler {
 
   private async asyncRequestHandler(req: RenderRequset): Promise<RenderResponse> {
     const url = new URL(req.url);
-    const client = new Client(url.origin);
     const method = 'GET';
-    let responseData;
+    let responseData: AxiosResponse<Readable>;
     try {
-      responseData = await client.request({ path: url.pathname, method });
-    } catch {
+      responseData = await axios.request<Readable>({ method, baseURL: url.origin, url: url.pathname, responseType: 'stream' });
+    } catch (err) {
       throw new RequestFailedError(`failed to initialize request for ${req.url}.`);
     }
 
     const renderResponse: RenderResponse = { data: EMPTY_BUFFER };
 
-    const { statusCode, body, headers } = responseData;
+    const { status, data } = responseData;
 
-    if (statusCode < httpStatus.OK || statusCode >= httpStatus.MULTIPLE_CHOICES) {
-      if (statusCode === httpStatus.NOT_FOUND) {
-        throw new NotFoundError(`could not find resource type ${req.kind} in ${req.url} recieved status code of ${statusCode}.`);
+    if (status < httpStatus.OK || status >= httpStatus.MULTIPLE_CHOICES) {
+      if (status === httpStatus.NOT_FOUND) {
+        throw new NotFoundError(`could not find resource type ${req.kind} in ${req.url} recieved status code of ${status}.`);
       }
-      throw new Error(`request for ${req.url} failed with status code of ${statusCode}.`);
+      throw new Error(`request for ${req.url} failed with status code of ${status}.`);
     }
 
     const chuncksArr: Uint8Array[] = [];
-    for await (const chunk of body) {
+    for await (const chunk of data) {
       chuncksArr.push(chunk);
     }
 
     renderResponse.data = Buffer.concat(chuncksArr);
 
+    const headers = responseData.headers as IncomingHttpHeaders;
     if (headers['content-encoding'] === 'gzip') {
       renderResponse.data = await promisifyGunzip(renderResponse.data);
     }

@@ -1,4 +1,8 @@
+import { lookup } from 'mime-types';
+
 export const DEFAULT_SERVER_PORT = 80;
+
+export const DEFAULT_APP_ADDRESS = '0.0.0.0';
 
 export enum Services {
   LOGGER = 'ILogger',
@@ -6,6 +10,8 @@ export enum Services {
   APPLICATION = 'IApplication',
   GLOBAL = 'IGlobal',
 }
+
+export const PNG_CONTENT_TYPE = lookup('png') as string;
 
 export const POWERS_OF_TWO_PER_ZOOM_LEVEL: Record<number, number> = {
   0: 1,

@@ -71,6 +71,10 @@ export class TileManager {
     return this.renderImageWrapper(z, lon, lat);
   }
 
+  public closePool(): void {
+    this.renderersPool.close();
+  }
+
   private async renderImageWrapper(zoom: number, lon: number, lat: number): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       this.renderImage(
