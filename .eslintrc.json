@@ -2,6 +2,6 @@
   "ignorePatterns": ["**/*.js", "dist"],
   "extends": ["@map-colonies/eslint-config/jest", "@map-colonies/eslint-config/ts-base"],
   "parserOptions": {
-    "project": "./tsconfig.test.json"
+    "project": "./tsconfig.lint.json"
   }
 }
