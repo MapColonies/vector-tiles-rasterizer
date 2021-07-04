@@ -62,11 +62,11 @@ jobs:
         node: [14.x]
 
     steps:
+      - name: Run Tests
+        run: sh /usr/src/app/docker-test.sh
+
       # - name: Check out Git repository
       #   uses: actions/checkout@v2
-
-      # - name: Build docker
-      #   run: docker build
 
       # - name: Set up Node.js
       #   uses: actions/setup-node@v1
