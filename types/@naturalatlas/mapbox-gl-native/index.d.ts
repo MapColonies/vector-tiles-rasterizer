@@ -31,6 +31,7 @@ declare module '@naturalatlas/mapbox-gl-native' {
     public constructor(options: RenderOptions);
 
     public load(style: unknown): void;
+    public release(something: unknown): void;
     public release(): void;
     public render(params: RenderParams, callback: RenderCallback): void;
   }

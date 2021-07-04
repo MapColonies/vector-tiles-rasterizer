@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import config from 'config';
 import jsLogger from '@map-colonies/js-logger';
 
@@ -11,6 +9,7 @@ import { OutOfBoundsError } from '../../../../src/common/errors';
 import { getDefaultTile, TileScheme } from '../helpers';
 
 let tileManager: TileManager;
+let sadTileManager: TileManager;
 let renderHandler: RenderHandler;
 let tileBuffer: Buffer;
 
@@ -19,10 +18,14 @@ const applicationConfig = config.get<IApplicationConfig>('application');
 describe('tileManager', () => {
   beforeAll(async function () {
     tileBuffer = await getTestTileBuffer();
-    renderHandler = new RenderHandler(jsLogger({ enabled: false }));
+    const mockLogger = jsLogger({ enabled: false });
+    renderHandler = new RenderHandler(mockLogger);
+    tileManager = new TileManager(mockLogger, applicationConfig, await getMockedGlobalConfig(), renderHandler);
+    sadTileManager = new TileManager(mockLogger, applicationConfig, await getMockedGlobalConfig(true), renderHandler);
   });
-  beforeEach(async function () {
-    tileManager = new TileManager(jsLogger({ enabled: false }), applicationConfig, await getMockedGlobalConfig(), renderHandler);
+  afterAll(function () {
+    tileManager.shutdown();
+    sadTileManager.shutdown();
   });
   describe('#getTile', () => {
     it('should return a valid tile buffer', async function () {
@@ -45,15 +48,11 @@ describe('tileManager', () => {
       const getTilePromise = tileManager.getTile(z, x, y);
 
       await expect(getTilePromise).rejects.toThrow(OutOfBoundsError);
-      tileManager.closePool();
     });
 
     it('should throw error when failing to initialize request', async function () {
-      const globalConfigWithSadStyle = await getMockedGlobalConfig(true);
-      tileManager = new TileManager(jsLogger({ enabled: false }), applicationConfig, globalConfigWithSadStyle, renderHandler);
-
       const { z, x, y } = getDefaultTile();
-      const getTilePromise = tileManager.getTile(z, x, y);
+      const getTilePromise = sadTileManager.getTile(z, x, y);
 
       await expect(getTilePromise).rejects.toThrow('failed to initialize request');
     });

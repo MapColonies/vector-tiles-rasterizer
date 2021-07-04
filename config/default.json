@@ -35,5 +35,8 @@
       "min": 0,
       "max": 22
     }
+  },
+  "tests": {
+    "enabled": false
   }
 }

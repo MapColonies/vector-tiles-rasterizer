@@ -8,7 +8,7 @@ import { Pool } from 'advanced-pool';
 import { Map, RenderParams } from '@naturalatlas/mapbox-gl-native';
 import { Services, POWERS_OF_TWO_PER_ZOOM_LEVEL } from '../../common/constants';
 import { OutOfBoundsError } from '../../common/errors';
-import { IApplicationConfig, IGlobalConfig } from '../../common/interfaces';
+import { IApplicationConfig, IGlobalConfig, ITestsConfig } from '../../common/interfaces';
 import { RenderHandler } from './renderHandler';
 
 const DEFAULT_TILE_SIZE = 256;
@@ -25,6 +25,9 @@ enum BufferChannel {
 }
 
 const zoomSettings = get<{ min: number; max: number }>('application.zoom');
+const testConfig = get<ITestsConfig>('tests');
+
+let poolInactivityTimeout: NodeJS.Timeout | undefined;
 
 const isZoomValid = (z: number): boolean => {
   return z >= zoomSettings.min && z <= zoomSettings.max;
@@ -50,14 +53,17 @@ export class TileManager {
     @inject(RenderHandler) private readonly renderHandler: RenderHandler
   ) {
     const { ratio, poolResources, tileSize } = this.application;
-    this.renderersPool = this.createPool(ratio, poolResources.min, poolResources.max);
     this.sphericalMercatorHelper = new SphericalMercator({ size: tileSize });
+    this.renderersPool = this.createPool(ratio, poolResources.min, poolResources.max);
+    this.createShutdownTimeout();
   }
 
   public async getTile(z: number, x: number, y: number): Promise<Buffer> {
     if (!isTileInBounds(z, x, y)) {
       throw new OutOfBoundsError(`tile request for z: ${z}, x: ${x}, y: ${y} is out of bounds.`);
     }
+
+    this.resetShutdownTimeout();
 
     const { tileSize } = this.application;
 
@@ -71,8 +77,11 @@ export class TileManager {
     return this.renderImageWrapper(z, lon, lat);
   }
 
-  public closePool(): void {
+  public shutdown(): void {
     this.renderersPool.close();
+    if (poolInactivityTimeout) {
+      clearTimeout(poolInactivityTimeout);
+    }
   }
 
   private async renderImageWrapper(zoom: number, lon: number, lat: number): Promise<Buffer> {
@@ -168,5 +177,21 @@ export class TileManager {
         renderer.release();
       },
     });
+  }
+
+  private createShutdownTimeout(): void {
+    if (testConfig.enabled && poolInactivityTimeout == undefined) {
+      poolInactivityTimeout = setTimeout(() => {
+        this.shutdown();
+      }, testConfig.poolInactivityClose);
+    }
+  }
+
+  private resetShutdownTimeout(): void {
+    if (testConfig.enabled && poolInactivityTimeout != undefined) {
+      clearTimeout(poolInactivityTimeout);
+      poolInactivityTimeout = undefined;
+      this.createShutdownTimeout();
+    }
   }
 }

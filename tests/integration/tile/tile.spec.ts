@@ -1,23 +1,26 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
+import config from 'config';
 import faker from 'faker';
 import httpStatusCodes from 'http-status-codes';
 import { container } from 'tsyringe';
 import { FastifyInstance } from 'fastify';
 
 import { Services } from '../../../src/common/constants';
-import { IApplicationConfig, IGlobalConfig } from '../../../src/common/interfaces';
+import { IApplicationConfig, IGlobalConfig, ITestsConfig } from '../../../src/common/interfaces';
 import { GetTileParams } from '../../../src/tile/controllers/tileController';
 import { registerTestValues } from '../testContainerConfig';
-import { getDefaultTileRequestParams, getTestTileBuffer } from '../../helpers';
+import { getDefaultTileRequestParams, getTestTileBuffer, waitTilPoolIsClosed } from '../../helpers';
 import { POWERS_OF_TWO_PER_ZOOM_LEVEL, PNG_CONTENT_TYPE } from '../../../src/common/constants';
 import * as requestSender from './helpers/requestSender';
+
+const POOL_CLOSING_TRESHOLD = 1000;
 
 let app: FastifyInstance;
 let appWithSadStyle: FastifyInstance;
 let applicationConfig: IApplicationConfig;
 let globalConfig: IGlobalConfig;
 let tileBuffer: Buffer;
+
+const testsConfig = config.get<ITestsConfig>('tests');
 
 describe('rasterize', function () {
   beforeAll(async function () {
@@ -27,13 +30,27 @@ describe('rasterize', function () {
     globalConfig = container.resolve(Services.GLOBAL);
     tileBuffer = await getTestTileBuffer();
   });
-  afterEach(function () {
-    container.clearInstances();
-    jest.clearAllMocks();
-  });
-  afterAll(function () {
+  afterAll(async function () {
     container.reset();
+    // so the pool will be closed
+    await waitTilPoolIsClosed((testsConfig.poolInactivityClose as number) + POOL_CLOSING_TRESHOLD);
   });
+
+  describe('Sad Path', function () {
+    it('should return 500 status code for unreachable tiles url', async function () {
+      appWithSadStyle = await requestSender.getAppWithSadStyle();
+
+      const tileRequestParams: GetTileParams = getDefaultTileRequestParams();
+
+      const response = await requestSender.getTile(appWithSadStyle, tileRequestParams);
+
+      // so the pool will be closed
+      await waitTilPoolIsClosed((testsConfig.poolInactivityClose as number) + POOL_CLOSING_TRESHOLD);
+
+      expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
+    });
+  });
+
   describe('Happy Path', function () {
     it('should return 200 status code with the tile buffer', async function () {
       const tileRequestParams: GetTileParams = getDefaultTileRequestParams();
@@ -79,6 +96,7 @@ describe('rasterize', function () {
       expect(response.body).toMatchObject({});
     });
   });
+
   describe('Bad Path', function () {
     it('should return 400 status code for lower than min zoom level', async function () {
       const tileRequestParams: GetTileParams = getDefaultTileRequestParams();
@@ -146,18 +164,6 @@ describe('rasterize', function () {
 
       expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
       expect(response.body).toHaveProperty('message', `tile request for z: ${z}, x: ${x}, y: ${y} is out of bounds.`);
-    });
-  });
-  beforeAll(async () => {
-    appWithSadStyle = await requestSender.getAppWithSadStyle();
-  });
-  describe('Sad Path', function () {
-    it.skip('should return 500 status code for unreachable tiles url', async function () {
-      const tileRequestParams: GetTileParams = getDefaultTileRequestParams();
-
-      const response = await requestSender.getTile(appWithSadStyle, tileRequestParams);
-
-      expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
     });
   });
 });

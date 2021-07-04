@@ -4,8 +4,8 @@ import { container } from 'tsyringe';
 
 import { ServerBuilder } from '../../../../src/serverBuilder';
 import { GetTileParams } from '../../../../src/tile/controllers/tileController';
-import { Services } from '../../../../src/common/constants';
 import { getMockedGlobalConfig } from '../../../helpers';
+import { Services } from '../../../../src/common/constants';
 
 interface RequestCacheHeaders {
   modifiedSince?: string;

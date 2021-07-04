@@ -33,6 +33,6 @@ COPY . .
 
 RUN npm run build
 
-RUN chmod 777 /usr/src/app/docker-test.sh
+RUN chmod a+x /usr/src/app/docker-test.sh
 
 CMD ./docker-test.sh

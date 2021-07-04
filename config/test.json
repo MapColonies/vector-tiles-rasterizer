@@ -1,1 +1,18 @@
-{}
+{
+  "application": {
+    "tileSize": 256,
+    "ratio": 1,
+    "poolResources": {
+      "min": 1,
+      "max": 8
+    },
+    "zoom": {
+      "min": 0,
+      "max": 22
+    }
+  },
+  "tests": {
+    "enabled": true,
+    "poolInactivityClose": 2000
+  }
+}

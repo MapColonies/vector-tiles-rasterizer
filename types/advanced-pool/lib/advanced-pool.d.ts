@@ -23,7 +23,14 @@ declare module 'advanced-pool' {
     public size(): number;
   }
 
+  export class Priv<T> {
+    public allObjects: T[];
+    public freeObjects: T[];
+    public busyObjects: T[];
+  }
+
   export class Pool<T> {
+    public priv: Priv<T>;
     public acquire: (client: ObjectCallback<T>, queueParam?: unknown) => void;
     public release: (object: T) => void;
     public close: () => void;
