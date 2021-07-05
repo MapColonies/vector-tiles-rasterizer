@@ -30,5 +30,8 @@ dumb-init npm run test "$@" &
 child=$!
 wait "$child"
 
+exitCode=$?
+
 start-stop-daemon --stop --retry 5 --pidfile ~/xvfb.pid # stop xvfb when exiting
 rm ~/xvfb.pid
+exit $exitCode

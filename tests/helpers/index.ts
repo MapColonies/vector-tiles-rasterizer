@@ -1,5 +1,5 @@
 import path from 'path';
-import fs from 'fs/promises';
+import fs from 'fs';
 
 import { IGlobalConfig } from '../../src/common/interfaces';
 import { GetTileParams } from '../../src/tile/controllers/tileController';
@@ -18,7 +18,7 @@ export const getDefaultTileRequestParams = (): GetTileParams => DEFAULT_TILE_REQ
 export const getMockedGlobalConfig = async (shouldRegisterSadStyle = false): Promise<IGlobalConfig> => {
   const testStyleName = shouldRegisterSadStyle ? 'sad-style.json' : 'style.json';
   const testStylePath = path.join(TEST_ENV_DIR_PATH, STYLES_DIR, testStyleName);
-  const styleContent: unknown = JSON.parse(await fs.readFile(testStylePath, 'utf-8'));
+  const styleContent: unknown = JSON.parse(await fs.promises.readFile(testStylePath, 'utf-8'));
 
   const globalConfig: IGlobalConfig = {
     appInitTime: new Date().toUTCString(),
@@ -29,7 +29,7 @@ export const getMockedGlobalConfig = async (shouldRegisterSadStyle = false): Pro
 };
 
 export const getTestTileBuffer = async (): Promise<Buffer> => {
-  return fs.readFile(path.resolve(path.join(TEST_ENV_DIR_PATH, 'test-tile.png')));
+  return fs.promises.readFile(path.resolve(path.join(TEST_ENV_DIR_PATH, 'test-tile.png')));
 };
 
 export const waitTilPoolIsClosed = async (ms: number): Promise<void> => {

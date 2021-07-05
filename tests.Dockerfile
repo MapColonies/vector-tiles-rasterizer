@@ -1,11 +1,12 @@
 FROM ubuntu:20.04 AS tester
 
+ARG NODE_VERSION=14.x
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -yq \
     && apt-get -yq install curl gnupg ca-certificates software-properties-common dumb-init \
     && add-apt-repository ppa:kisak/kisak-mesa \
-    && curl -L https://deb.nodesource.com/setup_14.x | bash \
+    && curl -L https://deb.nodesource.com/setup_${NODE_VERSION} | bash \
     && apt-get install -yq \
         dh-autoreconf=19 \
         nodejs
@@ -35,4 +36,4 @@ RUN npm run build
 
 RUN chmod a+x /usr/src/app/docker-test.sh
 
-CMD ./docker-test.sh
+CMD ["./docker-test.sh"]

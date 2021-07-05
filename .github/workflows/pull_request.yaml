@@ -47,37 +47,33 @@ jobs:
   tests:
     name: Run Tests
     runs-on: ubuntu-latest
-    container: melancholiai/vector-tiles-rasterizer-tests:v0.0.1
 
     services:
-      # Label used to access the service container
       tileserver-gl:
-        # Docker Hub image
         image: maptiler/tileserver-gl:v3.1.1
         ports:
           - 80:80
+        options: >-
+          --user 0
+          --health-cmd "node -e 'const http = require(\"http\"); const req = http.get(\"http://localhost:80\", function (res) { const { statusCode } = res; if (statusCode !== 200) { process.exit(1); }; req.on(\"error\", function (e) { process.exit(1); })});'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     strategy:
+      fail-fast: false
       matrix:
-        node: [14.x]
+        node: [12.x, 14.x]
 
     steps:
-      - name: Run Tests
-        run: sh /usr/src/app/docker-test.sh
+      - name: Check out Git repository
+        uses: actions/checkout@v2
 
-      # - name: Check out Git repository
-      #   uses: actions/checkout@v2
+      - name: Build test docker image
+        run: docker build --build-arg NODE_VERSION=${{ matrix.node }} -f ./tests.Dockerfile -t vector-tiles-rasterizer-tests:latest .
 
-      # - name: Set up Node.js
-      #   uses: actions/setup-node@v1
-      #   with:
-      #     node-version: ${{ matrix.node }}
-
-      # - name: Install Node.js dependencies
-      #   run: npm ci
-
-      # - name: Run tests
-      #   run: docker build ./tests.Dockerfile
+      - name: Run tests
+        run: docker run --network host vector-tiles-rasterizer-tests:latest
 
       - uses: actions/upload-artifact@v2
         with:
