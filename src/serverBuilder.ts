@@ -5,11 +5,11 @@ import fastifyCompression, { FastifyCompressOptions } from 'fastify-compress';
 import { FastifyStaticSwaggerOptions, fastifySwagger } from 'fastify-swagger';
 
 import { Services } from './common/constants';
-import { IConfig, IGlobalConfig, OpenApiConfig } from './common/interfaces';
+import { IApplicationConfig, IConfig, OpenApiConfig } from './common/interfaces';
 import { tileRoutesRegistry } from './tile/routes/tileRouter';
 import { FastifyBodyParserOptions } from './common/types';
 import { jsonParserHook } from './common/hooks/jsonParser';
-import { onRequestHookWrapper } from './common/hooks/onRequest';
+import { onSendHookWrapper } from './common/hooks/onSend';
 
 @injectable()
 export class ServerBuilder {
@@ -18,7 +18,7 @@ export class ServerBuilder {
   public constructor(
     @inject(Services.CONFIG) private readonly config: IConfig,
     @inject(Services.LOGGER) private readonly logger: Logger,
-    @inject(Services.GLOBAL) private readonly global: IGlobalConfig
+    @inject(Services.APPLICATION) private readonly appConfig: IApplicationConfig
   ) {
     this.serverInstance = fastify();
   }
@@ -42,7 +42,7 @@ export class ServerBuilder {
   }
 
   private buildHooks(): void {
-    this.serverInstance.addHook('onRequest', onRequestHookWrapper(this.global.appInitTime));
+    this.serverInstance.addHook('onSend', onSendHookWrapper(this.appConfig.cachePeriod));
   }
 
   private async buildRoutes(): Promise<void> {

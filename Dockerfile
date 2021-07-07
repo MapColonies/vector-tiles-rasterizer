@@ -37,7 +37,7 @@ RUN npm run build
 
 FROM ubuntu:20.04 AS production
 
-ARG NODE_VERSION
+ARG NODE_VERSION=14.x
 ENV DEBIAN_FRONTEND=noninteractive
 ENV NODE_ENV=production
 ENV SERVER_PORT=8080

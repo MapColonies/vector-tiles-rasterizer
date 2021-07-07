@@ -5,7 +5,7 @@ import { container } from 'tsyringe';
 import { FastifyInstance } from 'fastify';
 
 import { Services } from '../../../src/common/constants';
-import { IApplicationConfig, IGlobalConfig, ITestsConfig } from '../../../src/common/interfaces';
+import { IApplicationConfig, ITestsConfig } from '../../../src/common/interfaces';
 import { GetTileParams } from '../../../src/tile/controllers/tileController';
 import { registerTestValues } from '../testContainerConfig';
 import { getDefaultTileRequestParams, getTestTileBuffer, waitTilPoolIsClosed } from '../../helpers';
@@ -17,7 +17,6 @@ const POOL_CLOSING_TRESHOLD = 1000;
 let app: FastifyInstance;
 let appWithSadStyle: FastifyInstance;
 let applicationConfig: IApplicationConfig;
-let globalConfig: IGlobalConfig;
 let tileBuffer: Buffer;
 
 const testsConfig = config.get<ITestsConfig>('tests');
@@ -27,7 +26,6 @@ describe('rasterize', function () {
     await registerTestValues();
     app = await requestSender.getApp();
     applicationConfig = container.resolve(Services.APPLICATION);
-    globalConfig = container.resolve(Services.GLOBAL);
     tileBuffer = await getTestTileBuffer();
   });
   afterAll(async function () {
@@ -52,48 +50,15 @@ describe('rasterize', function () {
   });
 
   describe('Happy Path', function () {
-    it('should return 200 status code with the tile buffer', async function () {
+    it('should return 200 status code with the tile buffer and a cache control header', async function () {
       const tileRequestParams: GetTileParams = getDefaultTileRequestParams();
 
       const response = await requestSender.getTile(app, tileRequestParams);
 
       expect(response.status).toBe(httpStatusCodes.OK);
       expect(response.body).toMatchObject(tileBuffer);
-      expect(response.get('last-modified')).toMatch(globalConfig.appInitTime);
+      expect(response.get('cache-control')).toMatch(`public, max-age=${applicationConfig.cachePeriod}, must-revalidate`);
       expect(response.get('content-type')).toMatch(PNG_CONTENT_TYPE);
-    });
-
-    it('should return 200 status code with the tile buffer if last modified is too old', async function () {
-      const tileRequestParams: GetTileParams = getDefaultTileRequestParams();
-
-      const fakePastModifiedSince = faker.date.past(undefined, globalConfig.appInitTime).toUTCString();
-      const response = await requestSender.getTile(app, tileRequestParams, { modifiedSince: fakePastModifiedSince });
-
-      expect(response.status).toBe(httpStatusCodes.OK);
-      expect(response.body).toMatchObject(tileBuffer);
-      expect(response.get('last-modified')).toMatch(globalConfig.appInitTime);
-      expect(response.get('content-type')).toMatch(PNG_CONTENT_TYPE);
-    });
-
-    it('should return 200 status code with the tile buffer if request had cache control value of no-cache', async function () {
-      const tileRequestParams: GetTileParams = getDefaultTileRequestParams();
-
-      const fakePastModifiedSince = faker.date.past(undefined, globalConfig.appInitTime).toUTCString();
-      const response = await requestSender.getTile(app, tileRequestParams, { modifiedSince: fakePastModifiedSince, cacheControl: 'no-cache' });
-
-      expect(response.status).toBe(httpStatusCodes.OK);
-      expect(response.body).toMatchObject(tileBuffer);
-      expect(response.get('last-modified')).toMatch(globalConfig.appInitTime);
-      expect(response.get('content-type')).toMatch(PNG_CONTENT_TYPE);
-    });
-
-    it('should return 304 status code and return an empty body', async function () {
-      const tileRequestParams: GetTileParams = getDefaultTileRequestParams();
-      const fakeFutureModifiedSince = faker.date.future(undefined, globalConfig.appInitTime).toUTCString();
-      const response = await requestSender.getTile(app, tileRequestParams, { modifiedSince: fakeFutureModifiedSince });
-
-      expect(response.status).toBe(httpStatusCodes.NOT_MODIFIED);
-      expect(response.body).toMatchObject({});
     });
   });
 

@@ -8,7 +8,6 @@ import { getMockedGlobalConfig } from '../../../helpers';
 import { Services } from '../../../../src/common/constants';
 
 interface RequestCacheHeaders {
-  modifiedSince?: string;
   cacheControl?: string;
 }
 
@@ -31,10 +30,6 @@ export async function getTile(
 ): Promise<supertest.Test> {
   const { z, x, y } = params;
   let testRequest = supertest.agent(app.server).get(`/${z}/${x}/${y}.png`);
-
-  if (requestCacheHeaders?.modifiedSince != undefined) {
-    testRequest = testRequest.set('if-modified-since', requestCacheHeaders.modifiedSince);
-  }
 
   if (requestCacheHeaders?.cacheControl != undefined) {
     testRequest = testRequest.set('cache-control', requestCacheHeaders.cacheControl);

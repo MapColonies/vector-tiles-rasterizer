@@ -21,7 +21,6 @@ export interface IServerConfig {
 }
 
 export interface IGlobalConfig {
-  appInitTime: string;
   styleContent: unknown;
 }
 
@@ -37,6 +36,7 @@ export interface IApplicationConfig {
     min: number;
     max: number;
   };
+  cachePeriod: number;
 }
 
 export interface ITestsConfig {

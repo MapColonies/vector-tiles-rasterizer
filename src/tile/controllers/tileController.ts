@@ -37,6 +37,6 @@ export class TileController {
       throw error;
     }
 
-    return reply.code(httpStatus.OK).header('Last-Modified', this.global.appInitTime).type(PNG_CONTENT_TYPE).send(tileBuffer);
+    return reply.code(httpStatus.OK).type(PNG_CONTENT_TYPE).send(tileBuffer);
   };
 }

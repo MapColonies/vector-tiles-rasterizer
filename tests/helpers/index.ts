@@ -21,7 +21,6 @@ export const getMockedGlobalConfig = async (shouldRegisterSadStyle = false): Pro
   const styleContent: unknown = JSON.parse(await fs.promises.readFile(testStylePath, 'utf-8'));
 
   const globalConfig: IGlobalConfig = {
-    appInitTime: new Date().toUTCString(),
     styleContent: styleContent,
   };
 

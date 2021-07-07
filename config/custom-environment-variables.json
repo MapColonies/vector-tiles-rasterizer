@@ -51,6 +51,10 @@
         "__name": "APP_ZOOM_MAX",
         "__format": "number"
       }
+    },
+    "cachePeriod": {
+      "__name": "CACHE_PERIOD",
+      "__format": "number"
     }
   },
   "tests": {

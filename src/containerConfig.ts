@@ -17,7 +17,6 @@ async function registerExternalValues(): Promise<void> {
 
   const styleContent: unknown = JSON.parse(await fs.promises.readFile(applicationConfig.styleFilePath, 'utf-8'));
   const global: IGlobalConfig = {
-    appInitTime: new Date().toUTCString(),
     styleContent,
   };
   container.register(Services.GLOBAL, { useValue: global });
