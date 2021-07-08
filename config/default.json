@@ -20,6 +20,9 @@
       "compression": {
         "enabled": true,
         "options": null
+      },
+      "headers": {
+        "cachePeriod": 300
       }
     }
   },
@@ -34,8 +37,7 @@
     "zoom": {
       "min": 0,
       "max": 22
-    },
-    "cachePeriod": 300
+    }
   },
   "tests": {
     "enabled": false

@@ -36,7 +36,6 @@ export interface IApplicationConfig {
     min: number;
     max: number;
   };
-  cachePeriod: number;
 }
 
 export interface ITestsConfig {

@@ -15,11 +15,7 @@ import { onSendHookWrapper } from './common/hooks/onSend';
 export class ServerBuilder {
   private readonly serverInstance: FastifyInstance;
 
-  public constructor(
-    @inject(Services.CONFIG) private readonly config: IConfig,
-    @inject(Services.LOGGER) private readonly logger: Logger,
-    @inject(Services.APPLICATION) private readonly appConfig: IApplicationConfig
-  ) {
+  public constructor(@inject(Services.CONFIG) private readonly config: IConfig, @inject(Services.LOGGER) private readonly logger: Logger) {
     this.serverInstance = fastify();
   }
 
@@ -42,7 +38,8 @@ export class ServerBuilder {
   }
 
   private buildHooks(): void {
-    this.serverInstance.addHook('onSend', onSendHookWrapper(this.appConfig.cachePeriod));
+    const cachePeriod = this.config.get<number>('server.response.headers.cachePeriod');
+    this.serverInstance.addHook('onSend', onSendHookWrapper(cachePeriod));
   }
 
   private async buildRoutes(): Promise<void> {

@@ -19,6 +19,12 @@
           "__name": "RESPONSE_COMPRESSION_ENABLED",
           "__format": "boolean"
         }
+      },
+      "headers": {
+        "cachePeriod": {
+          "__name": "RESPONSE_HEADERS_CACHE_PERIOD",
+          "__format": "number"
+        }
       }
     }
   },
@@ -51,10 +57,6 @@
         "__name": "APP_ZOOM_MAX",
         "__format": "number"
       }
-    },
-    "cachePeriod": {
-      "__name": "CACHE_PERIOD",
-      "__format": "number"
     }
   },
   "tests": {

@@ -20,6 +20,7 @@ let applicationConfig: IApplicationConfig;
 let tileBuffer: Buffer;
 
 const testsConfig = config.get<ITestsConfig>('tests');
+const cachePeriod = config.get<number>('server.response.headers.cachePeriod');
 
 describe('rasterize', function () {
   beforeAll(async function () {
@@ -57,7 +58,7 @@ describe('rasterize', function () {
 
       expect(response.status).toBe(httpStatusCodes.OK);
       expect(response.body).toMatchObject(tileBuffer);
-      expect(response.get('cache-control')).toMatch(`public, max-age=${applicationConfig.cachePeriod}, must-revalidate`);
+      expect(response.get('cache-control')).toMatch(`public, max-age=${cachePeriod}, must-revalidate`);
       expect(response.get('content-type')).toMatch(PNG_CONTENT_TYPE);
     });
   });
