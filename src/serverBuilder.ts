@@ -5,7 +5,7 @@ import fastifyCompression, { FastifyCompressOptions } from 'fastify-compress';
 import { FastifyStaticSwaggerOptions, fastifySwagger } from 'fastify-swagger';
 
 import { Services } from './common/constants';
-import { IApplicationConfig, IConfig, OpenApiConfig } from './common/interfaces';
+import { IConfig, OpenApiConfig } from './common/interfaces';
 import { tileRoutesRegistry } from './tile/routes/tileRouter';
 import { FastifyBodyParserOptions } from './common/types';
 import { jsonParserHook } from './common/hooks/jsonParser';
