@@ -5,7 +5,7 @@ before running the server we must provide a compatible environment to serve the 
 1. to serve vector-tiles and fonts, we'll use the docker image of `tileserver-gl` for simplicity
 
 ```docker
-docker run --rm -it --network host -p 8080:80 -u 0 maptiler/tileserver-gl
+docker run --rm -it -p 8081:80 -u 0 maptiler/tileserver-gl
 ```
 
 the image will download mbtiles sample data of zurich and will serve the data on port 80
@@ -31,9 +31,9 @@ docker build --rm -f ./Dockerfile -t vector-tiles-rasterizer:latest .
 6. run the image
 ```docker
 docker run --rm --network host \
--v /path/to/vector-tiles-rasterizer/example/styles:/mnt/styles \
+-v $(pwd)/example/styles:/mnt/styles \
 -e APP_STYLE_FILE_PATH=/mnt/styles/zurich-style.json \
--it --name vtr vector-tiles-rasterizer:latest
+-it vector-tiles-rasterizer:latest
 ```
 
 `APP_STYLE_FILE_PATH` - the path to the style file.

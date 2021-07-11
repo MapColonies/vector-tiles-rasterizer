@@ -7,12 +7,12 @@
   "sources": {
     "openmaptiles": {
       "type": "vector",
-      "tiles": ["http://tileserver-gl:80/data/v3/{z}/{x}/{y}.pbf"],
+      "tiles": ["http://localhost:8081/data/v3/{z}/{x}/{y}.pbf"],
       "minzoom": 0,
       "maxzoom": 14
     }
   },
-  "glyphs": "http://tileserver-gl:80/fonts/{fontstack}/{range}.pbf",
+  "glyphs": "http://localhost:8081/fonts/{fontstack}/{range}.pbf",
   "layers": [
     {
       "id": "background",
