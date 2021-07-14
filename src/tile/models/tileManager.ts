@@ -34,8 +34,8 @@ const isZoomValid = (z: number): boolean => {
   return z >= zoomSettings.min && z <= zoomSettings.max;
 };
 
-const isAxisTileValid = (axisTileNumber: number, z: number): boolean => {
-  return axisTileNumber >= 0 && axisTileNumber <= POWERS_OF_TWO_PER_ZOOM_LEVEL[z];
+const isAxisTileValid = (axisTileCoordinate: number, z: number): boolean => {
+  return axisTileCoordinate >= 0 && axisTileCoordinate <= POWERS_OF_TWO_PER_ZOOM_LEVEL[z];
 };
 
 const isTileInBounds = (z: number, x: number, y: number): boolean => {
@@ -134,10 +134,10 @@ export class TileManager {
   }
 
   private getRenderParams(zoom: number, lon: number, lat: number): RenderParams {
-    const { tileSize, zoom: zoomSettings } = this.application;
+    const { tileSize } = this.application;
     const renderingTileSize = zoom === 0 ? ZOOM_ZERO_TILE_SIZE : tileSize;
     return {
-      zoom: Math.max(zoomSettings.min, tileSize === DEFAULT_TILE_SIZE ? zoom - 1 : zoom),
+      zoom: tileSize === DEFAULT_TILE_SIZE ? zoom - 1 : zoom,
       center: [lon, lat],
       width: renderingTileSize,
       height: renderingTileSize,
@@ -158,9 +158,9 @@ export class TileManager {
         buffer[i + BufferChannel.GREEN] = BLACK;
         buffer[i + BufferChannel.BLUE] = BLACK;
       } else {
-        buffer[i + BufferChannel.RED] /= norm;
-        buffer[i + BufferChannel.GREEN] /= norm;
-        buffer[i + BufferChannel.BLUE] /= norm;
+        buffer[i + BufferChannel.RED] *= norm;
+        buffer[i + BufferChannel.GREEN] *= norm;
+        buffer[i + BufferChannel.BLUE] *= norm;
       }
     }
   }

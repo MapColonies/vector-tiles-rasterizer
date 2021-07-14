@@ -1,7 +1,7 @@
 const DEFAULT_TILE: TileScheme = {
   x: 0,
   y: 0,
-  z: 0,
+  z: 1,
 };
 
 export interface TileScheme {

@@ -20,21 +20,21 @@ paths:
           required: true
           schema:
             allOf:
-              - $ref: '#/components/schemas/tilePosition'
+              - $ref: '#/components/schemas/tileCoordinate'
               - maximum: 22
           description: zoom level
         - in: path
           name: 'x'
           required: true
           schema:
-            $ref: '#/components/schemas/tilePosition'
-          description: x axis tile
+            $ref: '#/components/schemas/tileCoordinate'
+          description: x axis tile coordinate
         - in: path
           name: 'y'
           required: true
           schema:
-            $ref: '#/components/schemas/tilePosition'
-          description: y axis tile
+            $ref: '#/components/schemas/tileCoordinate'
+          description: y axis tile coordinate
       responses:
         200:
           description: the requested rasterized image
@@ -69,7 +69,7 @@ components:
           schema:
             $ref: '#/components/schemas/error'
   schemas:
-    tilePosition:
+    tileCoordinate:
       type: number
       format: int32
       default: 0

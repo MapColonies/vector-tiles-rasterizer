@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import { promises } from 'fs';
 import { container } from 'tsyringe';
 import config from 'config';
 import jsLogger, { LoggerOptions } from '@map-colonies/js-logger';
@@ -15,7 +15,7 @@ async function registerExternalValues(): Promise<void> {
   const applicationConfig = config.get<IApplicationConfig>('application');
   container.register(Services.APPLICATION, { useValue: applicationConfig });
 
-  const styleContent: unknown = JSON.parse(await fs.promises.readFile(applicationConfig.styleFilePath, 'utf-8'));
+  const styleContent: unknown = JSON.parse(await promises.readFile(applicationConfig.styleFilePath, 'utf-8'));
   const global: IGlobalConfig = {
     styleContent,
   };

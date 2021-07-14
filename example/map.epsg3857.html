@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang='en'>
 <head>
-    <meta charset="utf-8">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
-    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
-    crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
-    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
-    crossorigin=""></script>
+    <meta charset='utf-8'>
+    <link rel='stylesheet' href='https://unpkg.com/leaflet@1.7.1/dist/leaflet.css'
+    integrity='sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=='
+    crossorigin=''/>
+    <script src='https://unpkg.com/leaflet@1.7.1/dist/leaflet.js'
+    integrity='sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=='
+    crossorigin=''></script>
     <script src='https://api.tiles.mapbox.com/mapbox.js/v1.6.4/mapbox.js'></script>
-    <style type="text/css">
+    <style type='text/css'>
     body { margin:0; padding:0; }
     #mapid {
         position:absolute;
@@ -31,10 +31,10 @@
 </head>
 <body>
     <div>
-        <div id="mapid"></div>
-        <p id=location></p>
+        <div id='mapid'></div>
+        <p id='location'></p>
     </div>
-    <script type="text/javascript">
+    <script type='text/javascript'>
     let map = L.map('mapid', {
         crs: L.CRS.EPSG3857,
     })
@@ -59,7 +59,7 @@
 
     calculateLocation()
 
-    map.on("move", function () {
+    map.on('move', function () {
         calculateLocation();
     })
     </script>

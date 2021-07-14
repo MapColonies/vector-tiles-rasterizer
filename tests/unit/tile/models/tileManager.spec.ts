@@ -54,7 +54,7 @@ describe('tileManager', () => {
       const { z, x, y } = getDefaultTile();
       const getTilePromise = sadTileManager.getTile(z, x, y);
 
-      await expect(getTilePromise).rejects.toThrow('failed to initialize request');
+      await expect(getTilePromise).rejects.toThrow('failed');
     });
   });
 });

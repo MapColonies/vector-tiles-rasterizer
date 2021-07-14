@@ -11,7 +11,7 @@ export const jsonParserHook = (req: FastifyRequest, body: string | Buffer, done:
     json = secureJsonParse.parse(body);
   } catch (error) {
     (error as HttpError).statusCode = httpStatus.BAD_REQUEST;
-    done(error, undefined);
+    done(error);
   }
   done(null, json);
 };

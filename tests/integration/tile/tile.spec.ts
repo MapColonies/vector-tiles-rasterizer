@@ -8,11 +8,9 @@ import { Services } from '../../../src/common/constants';
 import { IApplicationConfig, ITestsConfig } from '../../../src/common/interfaces';
 import { GetTileParams } from '../../../src/tile/controllers/tileController';
 import { registerTestValues } from '../testContainerConfig';
-import { getDefaultTileRequestParams, getTestTileBuffer, waitTilPoolIsClosed } from '../../helpers';
+import { getDefaultTileRequestParams, getTestTileBuffer, waitUntilPoolIsClosed } from '../../helpers';
 import { POWERS_OF_TWO_PER_ZOOM_LEVEL, PNG_CONTENT_TYPE } from '../../../src/common/constants';
 import * as requestSender from './helpers/requestSender';
-
-const POOL_CLOSING_TRESHOLD = 1000;
 
 let app: FastifyInstance;
 let appWithSadStyle: FastifyInstance;
@@ -32,7 +30,7 @@ describe('rasterize', function () {
   afterAll(async function () {
     container.reset();
     // so the pool will be closed
-    await waitTilPoolIsClosed((testsConfig.poolInactivityClose as number) + POOL_CLOSING_TRESHOLD);
+    await waitUntilPoolIsClosed(testsConfig.poolInactivityClose as number);
   });
 
   describe('Sad Path', function () {
@@ -40,11 +38,10 @@ describe('rasterize', function () {
       appWithSadStyle = await requestSender.getAppWithSadStyle();
 
       const tileRequestParams: GetTileParams = getDefaultTileRequestParams();
-
       const response = await requestSender.getTile(appWithSadStyle, tileRequestParams);
 
       // so the pool will be closed
-      await waitTilPoolIsClosed((testsConfig.poolInactivityClose as number) + POOL_CLOSING_TRESHOLD);
+      await waitUntilPoolIsClosed(testsConfig.poolInactivityClose as number);
 
       expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
     });
@@ -86,7 +83,7 @@ describe('rasterize', function () {
       expect(response.body).toHaveProperty('message', `tile request for z: ${z}, x: ${x}, y: ${y} is out of bounds.`);
     });
 
-    it('should return 400 status code for a negative x axis tile', async function () {
+    it('should return 404 status code for a negative x axis tile', async function () {
       const randomZoom = faker.datatype.number({ min: applicationConfig.zoom.min, max: applicationConfig.zoom.max });
       const tileRequestParams: GetTileParams = {
         z: randomZoom.toString(),
@@ -95,10 +92,8 @@ describe('rasterize', function () {
       };
 
       const response = await requestSender.getTile(app, tileRequestParams);
-      const { z, x, y } = tileRequestParams;
 
-      expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-      expect(response.body).toHaveProperty('message', `tile request for z: ${z}, x: ${x}, y: ${y} is out of bounds.`);
+      expect(response.status).toBe(httpStatusCodes.NOT_FOUND);
     });
 
     it('should return 400 status code for a too high x axis tile per zoom', async function () {
@@ -114,6 +109,19 @@ describe('rasterize', function () {
 
       expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
       expect(response.body).toHaveProperty('message', `tile request for z: ${z}, x: ${x}, y: ${y} is out of bounds.`);
+    });
+
+    it('should return 404 status code for a negative y axis tile', async function () {
+      const randomZoom = faker.datatype.number({ min: applicationConfig.zoom.min, max: applicationConfig.zoom.max });
+      const tileRequestParams: GetTileParams = {
+        z: randomZoom.toString(),
+        x: '0',
+        y: '-1',
+      };
+
+      const response = await requestSender.getTile(app, tileRequestParams);
+
+      expect(response.status).toBe(httpStatusCodes.NOT_FOUND);
     });
 
     it('should return 400 status code for a too high y axis tile per zoom', async function () {

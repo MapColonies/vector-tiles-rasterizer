@@ -44,7 +44,7 @@ export class RenderHandler {
     try {
       responseData = await axios.request<Readable>({ method, baseURL: url.origin, url: url.pathname, responseType: 'stream' });
     } catch (err) {
-      throw new RequestFailedError(`failed to initialize request for ${req.url}.`);
+      throw new RequestFailedError(`requesting ${req.url} has failed.`);
     }
 
     const renderResponse: RenderResponse = { data: EMPTY_BUFFER };
