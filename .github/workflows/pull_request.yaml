@@ -69,11 +69,10 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v2
 
-      - name: Enable buildkit builds
-        run: export DOCKER_BUILDKIT=1
-
       - name: Build test docker image
         run: docker build --build-arg NODE_VERSION=${{ matrix.node }} -f ./tests.Dockerfile -t vector-tiles-rasterizer-tests:latest .
+        env:
+          DOCKER_BUILDKIT: 1
 
       - name: Run tests
         run: docker run --network host vector-tiles-rasterizer-tests:latest
