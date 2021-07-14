@@ -1,0 +1,16 @@
+.nyc_output
+.circlei
+.github
+coverage
+node_modules
+.prettier*
+commitlint.config.json
+README.md
+.npmrc
+.redocly.yaml
+.nvmrc
+.git*
+commitlint.config.json
+dist
+build
+reports

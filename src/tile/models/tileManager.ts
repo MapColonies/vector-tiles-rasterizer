@@ -12,6 +12,7 @@ import { IApplicationConfig, IGlobalConfig, ITestsConfig } from '../../common/in
 import { RenderHandler } from './renderHandler';
 
 const DEFAULT_TILE_SIZE = 256;
+const ZOOM_ZERO_TILE_SIZE = 512;
 const HALF_TILE = 0.5;
 
 const NUM_OF_CHANNELS_IN_BUFFER = 4;
@@ -134,11 +135,12 @@ export class TileManager {
 
   private getRenderParams(zoom: number, lon: number, lat: number): RenderParams {
     const { tileSize, zoom: zoomSettings } = this.application;
+    const renderingTileSize = zoom === 0 ? ZOOM_ZERO_TILE_SIZE : tileSize;
     return {
       zoom: Math.max(zoomSettings.min, tileSize === DEFAULT_TILE_SIZE ? zoom - 1 : zoom),
       center: [lon, lat],
-      width: tileSize,
-      height: tileSize,
+      width: renderingTileSize,
+      height: renderingTileSize,
     };
   }
 
