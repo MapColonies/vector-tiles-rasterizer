@@ -5,15 +5,14 @@ import { Services } from '../../src/common/constants';
 import { IApplicationConfig } from '../../src/common/interfaces';
 import { getMockedGlobalConfig } from '../helpers';
 
-async function registerTestValues(): Promise<void> {
+async function registerTestValues(shouldRegisterSadStyle: boolean): Promise<void> {
   container.register(Services.CONFIG, { useValue: config });
   container.register(Services.LOGGER, { useValue: jsLogger({ enabled: false }) });
 
   const applicationConfig = config.get<IApplicationConfig>('application');
   container.register(Services.APPLICATION, { useValue: applicationConfig });
 
-  const globalConfig = await getMockedGlobalConfig();
-  container.register(Services.GLOBAL, { useValue: globalConfig });
+  container.register(Services.GLOBAL, { useValue: await getMockedGlobalConfig(shouldRegisterSadStyle) });
 }
 
 export { registerTestValues };

@@ -9,7 +9,6 @@ export enum Services {
   CONFIG = 'IConfig',
   APPLICATION = 'IApplication',
   GLOBAL = 'IGlobal',
-  TESTS = 'ITests',
 }
 
 export const PNG_CONTENT_TYPE = lookup('png') as string;

@@ -1,14 +1,14 @@
 import { get } from 'config';
 import { Logger } from '@map-colonies/js-logger';
 import SphericalMercator from '@mapbox/sphericalmercator';
-import { inject, injectable } from 'tsyringe';
+import { inject, singleton } from 'tsyringe';
 import sharp from 'sharp';
 import { Pool } from 'advanced-pool';
 
 import { Map, RenderParams } from '@naturalatlas/mapbox-gl-native';
 import { Services, POWERS_OF_TWO_PER_ZOOM_LEVEL } from '../../common/constants';
 import { OutOfBoundsError } from '../../common/errors';
-import { IApplicationConfig, IGlobalConfig, ITestsConfig } from '../../common/interfaces';
+import { IApplicationConfig, IGlobalConfig } from '../../common/interfaces';
 import { RenderHandler } from './renderHandler';
 
 const DEFAULT_TILE_SIZE = 256;
@@ -26,9 +26,6 @@ enum BufferChannel {
 }
 
 const zoomSettings = get<{ min: number; max: number }>('application.zoom');
-const testConfig = get<ITestsConfig>('tests');
-
-let poolInactivityTimeout: NodeJS.Timeout | undefined;
 
 const isZoomValid = (z: number): boolean => {
   return z >= zoomSettings.min && z <= zoomSettings.max;
@@ -42,7 +39,7 @@ const isTileInBounds = (z: number, x: number, y: number): boolean => {
   return isZoomValid(z) && isAxisTileValid(x, z) && isAxisTileValid(y, z);
 };
 
-@injectable()
+@singleton()
 export class TileManager {
   private readonly renderersPool: Pool<Map>;
   private readonly sphericalMercatorHelper: SphericalMercator;
@@ -56,15 +53,12 @@ export class TileManager {
     const { ratio, poolResources, tileSize } = this.application;
     this.sphericalMercatorHelper = new SphericalMercator({ size: tileSize });
     this.renderersPool = this.createPool(ratio, poolResources.min, poolResources.max);
-    this.createShutdownTimeout();
   }
 
   public async getTile(z: number, x: number, y: number): Promise<Buffer> {
     if (!isTileInBounds(z, x, y)) {
       throw new OutOfBoundsError(`tile request for z: ${z}, x: ${x}, y: ${y} is out of bounds.`);
     }
-
-    this.resetShutdownTimeout();
 
     const { tileSize } = this.application;
 
@@ -80,9 +74,6 @@ export class TileManager {
 
   public shutdown(): void {
     this.renderersPool.close();
-    if (poolInactivityTimeout) {
-      clearTimeout(poolInactivityTimeout);
-    }
   }
 
   private async renderImageWrapper(zoom: number, lon: number, lat: number): Promise<Buffer> {
@@ -167,7 +158,7 @@ export class TileManager {
 
   private createPool(ratio: number, minResources: number, maxResources: number): Pool<Map> {
     const createRenderer = (ratio: number, createCallback: (err: Error | null, renderer: Map) => void): void => {
-      const renderer = new Map({ ...this.renderHandler.renderOptions, ratio });
+      const renderer = new Map({ ...this.renderHandler.getRenderOptions(), ratio });
       renderer.load(this.global.styleContent);
       createCallback(null, renderer);
     };
@@ -179,21 +170,5 @@ export class TileManager {
         renderer.release();
       },
     });
-  }
-
-  private createShutdownTimeout(): void {
-    if (testConfig.enabled && poolInactivityTimeout == undefined) {
-      poolInactivityTimeout = setTimeout(() => {
-        this.shutdown();
-      }, testConfig.poolInactivityClose);
-    }
-  }
-
-  private resetShutdownTimeout(): void {
-    if (testConfig.enabled && poolInactivityTimeout != undefined) {
-      clearTimeout(poolInactivityTimeout);
-      poolInactivityTimeout = undefined;
-      this.createShutdownTimeout();
-    }
   }
 }

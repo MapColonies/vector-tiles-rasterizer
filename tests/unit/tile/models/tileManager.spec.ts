@@ -19,7 +19,7 @@ describe('tileManager', () => {
   beforeAll(async function () {
     tileBuffer = await getTestTileBuffer();
     const mockLogger = jsLogger({ enabled: false });
-    renderHandler = new RenderHandler(mockLogger);
+    renderHandler = new RenderHandler(mockLogger, applicationConfig);
     tileManager = new TileManager(mockLogger, applicationConfig, await getMockedGlobalConfig(), renderHandler);
     sadTileManager = new TileManager(mockLogger, applicationConfig, await getMockedGlobalConfig(true), renderHandler);
   });

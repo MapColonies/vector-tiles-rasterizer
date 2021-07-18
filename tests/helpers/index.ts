@@ -13,7 +13,9 @@ const DEFAULT_TILE_REQUEST_PARAMS: GetTileParams = {
   z: '1',
 };
 
-export const getDefaultTileRequestParams = (): GetTileParams => DEFAULT_TILE_REQUEST_PARAMS;
+export const getDefaultTileRequestParams = (): GetTileParams => {
+  return { ...DEFAULT_TILE_REQUEST_PARAMS };
+};
 
 export const getMockedGlobalConfig = async (shouldRegisterSadStyle = false): Promise<IGlobalConfig> => {
   const testStyleName = shouldRegisterSadStyle ? 'sad-style.json' : 'style.json';

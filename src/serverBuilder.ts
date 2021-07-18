@@ -10,12 +10,18 @@ import { tileRoutesRegistry } from './tile/routes/tileRouter';
 import { FastifyBodyParserOptions } from './common/types';
 import { jsonParserHook } from './common/hooks/jsonParser';
 import { onSendHookWrapper } from './common/hooks/onSend';
+import { onCloseHookWrapper } from './common/hooks/onClose';
+import { TileManager } from './tile/models/tileManager';
 
 @injectable()
 export class ServerBuilder {
   private readonly serverInstance: FastifyInstance;
 
-  public constructor(@inject(Services.CONFIG) private readonly config: IConfig, @inject(Services.LOGGER) private readonly logger: Logger) {
+  public constructor(
+    @inject(Services.CONFIG) private readonly config: IConfig,
+    @inject(Services.LOGGER) private readonly logger: Logger,
+    @inject(TileManager) private readonly manager: TileManager
+  ) {
     this.serverInstance = fastify();
   }
 
@@ -40,6 +46,7 @@ export class ServerBuilder {
   private buildHooks(): void {
     const cachePeriod = this.config.get<number>('server.response.headers.cachePeriod');
     this.serverInstance.addHook('onSend', onSendHookWrapper(cachePeriod));
+    this.serverInstance.addHook('onClose', onCloseHookWrapper(this.manager));
   }
 
   private async buildRoutes(): Promise<void> {

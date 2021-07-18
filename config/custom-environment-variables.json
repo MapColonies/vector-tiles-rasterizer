@@ -58,15 +58,5 @@
         "__format": "number"
       }
     }
-  },
-  "tests": {
-    "enabled": {
-      "__name": "TESTS_ENABLED",
-      "__format": "boolean"
-    },
-    "poolInactivityClose": {
-      "__name": "TESTS_POOL_INACTIVITY_CLOSE",
-      "__format": "number"
-    }
   }
 }

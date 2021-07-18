@@ -10,9 +10,5 @@
       "min": 1,
       "max": 22
     }
-  },
-  "tests": {
-    "enabled": true,
-    "poolInactivityClose": 2000
   }
 }

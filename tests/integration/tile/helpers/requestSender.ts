@@ -4,8 +4,6 @@ import { container } from 'tsyringe';
 
 import { ServerBuilder } from '../../../../src/serverBuilder';
 import { GetTileParams } from '../../../../src/tile/controllers/tileController';
-import { getMockedGlobalConfig } from '../../../helpers';
-import { Services } from '../../../../src/common/constants';
 
 interface RequestCacheHeaders {
   cacheControl?: string;
@@ -16,11 +14,6 @@ export async function getApp(): Promise<FastifyInstance> {
   const app = await builder.build();
   await app.ready();
   return app;
-}
-
-export async function getAppWithSadStyle(): Promise<FastifyInstance> {
-  container.register(Services.GLOBAL, { useValue: await getMockedGlobalConfig(true) });
-  return getApp();
 }
 
 export async function getTile(

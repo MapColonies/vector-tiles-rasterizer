@@ -5,10 +5,10 @@ import { container } from 'tsyringe';
 import { FastifyInstance } from 'fastify';
 
 import { Services } from '../../../src/common/constants';
-import { IApplicationConfig, ITestsConfig } from '../../../src/common/interfaces';
+import { IApplicationConfig } from '../../../src/common/interfaces';
 import { GetTileParams } from '../../../src/tile/controllers/tileController';
 import { registerTestValues } from '../testContainerConfig';
-import { getDefaultTileRequestParams, getTestTileBuffer, waitUntilPoolIsClosed } from '../../helpers';
+import { getDefaultTileRequestParams, getTestTileBuffer } from '../../helpers';
 import { POWERS_OF_TWO_PER_ZOOM_LEVEL, PNG_CONTENT_TYPE } from '../../../src/common/constants';
 import * as requestSender from './helpers/requestSender';
 
@@ -17,34 +17,18 @@ let appWithSadStyle: FastifyInstance;
 let applicationConfig: IApplicationConfig;
 let tileBuffer: Buffer;
 
-const testsConfig = config.get<ITestsConfig>('tests');
 const cachePeriod = config.get<number>('server.response.headers.cachePeriod');
 
 describe('rasterize', function () {
   beforeAll(async function () {
-    await registerTestValues();
+    await registerTestValues(false);
     app = await requestSender.getApp();
     applicationConfig = container.resolve(Services.APPLICATION);
     tileBuffer = await getTestTileBuffer();
   });
   afterAll(async function () {
-    container.reset();
-    // so the pool will be closed
-    await waitUntilPoolIsClosed(testsConfig.poolInactivityClose as number);
-  });
-
-  describe('Sad Path', function () {
-    it('should return 500 status code for unreachable tiles url', async function () {
-      appWithSadStyle = await requestSender.getAppWithSadStyle();
-
-      const tileRequestParams: GetTileParams = getDefaultTileRequestParams();
-      const response = await requestSender.getTile(appWithSadStyle, tileRequestParams);
-
-      // so the pool will be closed
-      await waitUntilPoolIsClosed(testsConfig.poolInactivityClose as number);
-
-      expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
-    });
+    await app.close();
+    await appWithSadStyle.close();
   });
 
   describe('Happy Path', function () {
@@ -138,6 +122,21 @@ describe('rasterize', function () {
 
       expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
       expect(response.body).toHaveProperty('message', `tile request for z: ${z}, x: ${x}, y: ${y} is out of bounds.`);
+    });
+  });
+
+  describe('Sad Path', function () {
+    beforeAll(async function () {
+      container.clearInstances();
+      await registerTestValues(true);
+      appWithSadStyle = await requestSender.getApp();
+    });
+    it('should return 500 status code for unreachable tiles url', async function () {
+      const tileRequestParams: GetTileParams = getDefaultTileRequestParams();
+
+      const response = await requestSender.getTile(appWithSadStyle, tileRequestParams);
+
+      expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
     });
   });
 });

@@ -11,17 +11,23 @@ import { RenderOptions, RequestCallback, RenderRequset, RenderResponse } from '@
 
 import { NotFoundError, RequestFailedError } from '../../common/errors';
 import { Services } from '../../common/constants';
+import { IApplicationConfig } from '../../common/interfaces';
 
-const DEFAULT_RATIO = 1;
 const EMPTY_BUFFER = Buffer.alloc(0);
 
 const promisifyGunzip = promisify(gunzip);
 
 @injectable()
 export class RenderHandler {
-  public renderOptions: RenderOptions = {
-    ratio: DEFAULT_RATIO,
-    request: (req: RenderRequset, callback: RequestCallback): void => {
+  private readonly ratio: number;
+  private readonly request: (req: RenderRequset, callback: RequestCallback) => void;
+
+  public constructor(
+    @inject(Services.LOGGER) private readonly logger: Logger,
+    @inject(Services.APPLICATION) private readonly appConfig: IApplicationConfig
+  ) {
+    this.ratio = this.appConfig.ratio;
+    this.request = (req: RenderRequset, callback: RequestCallback): void => {
       this.asyncRequestHandler(req)
         .then((renderResponse) => {
           callback(null, renderResponse);
@@ -32,10 +38,15 @@ export class RenderHandler {
           }
           callback(err);
         });
-    },
-  };
+    };
+  }
 
-  public constructor(@inject(Services.LOGGER) private readonly logger: Logger) {}
+  public getRenderOptions = (): RenderOptions => {
+    return {
+      request: this.request,
+      ratio: this.ratio,
+    };
+  };
 
   private async asyncRequestHandler(req: RenderRequset): Promise<RenderResponse> {
     const url = new URL(req.url);

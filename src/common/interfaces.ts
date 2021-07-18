@@ -38,11 +38,6 @@ export interface IApplicationConfig {
   };
 }
 
-export interface ITestsConfig {
-  enabled: boolean;
-  poolInactivityClose?: number;
-}
-
 export interface RequestHandler<Params = { [key: string]: string }, ReqBody = unknown, ReqQuery = ParsedQs> {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   (request: FastifyRequest<{ Params: Params; Body: ReqBody; Querystring: ReqQuery }>, reply: FastifyReply): void;
