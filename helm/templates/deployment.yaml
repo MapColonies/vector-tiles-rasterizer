@@ -58,4 +58,12 @@ spec:
           resources:
             {{- toYaml .Values.resources.value | nindent 12 }}
           {{- end }}
+          volumeMounts:
+            - name: styles
+              mountPath: /mnt/styles
+              readOnly: true
+      volumes:
+        - name: styles
+          configMap:
+            name: {{ $releaseName }}-{{ $chartName }}-style-configmap
 {{- end -}}

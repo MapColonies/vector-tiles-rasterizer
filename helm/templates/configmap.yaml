@@ -8,7 +8,7 @@ metadata:
 data:
 {{- with .Values.env }}
   LOG_LEVEL: {{ .logLevel | quote }}
-  APP_STYLE_FILE_PATH: {{ .styleFilePath | quote }}
+  APP_STYLE_FILE_PATH: /mnt/styles/{{ .styleFileName | default "style.json" }}
   APP_TILE_SIZE: {{ .tileSize | quote }}
   APP_RATIO: {{ .ratio | quote }}
   APP_ZOOM_MIN: {{ .minZoom | quote }}
