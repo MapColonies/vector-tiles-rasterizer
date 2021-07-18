@@ -3,6 +3,7 @@ dist
 .gitignore
 CHANGELOG.md
 commitlint.config.js
+helm
 package-lock.json
 package.json
 README.md
