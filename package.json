@@ -14,7 +14,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "release": "standard-version",
-    "test": "npm run test:unit && npm run test:integration --runInBand",
+    "test": "npm run test:unit && npm run test:integration",
     "prebuild": "npm run clean",
     "build": "tsc --project tsconfig.build.json  && npm run assets:copy",
     "start": "npm run build && cd dist && node ./index.js",
