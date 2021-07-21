@@ -29,10 +29,6 @@ export const getMockedGlobalConfig = async (shouldRegisterSadStyle = false): Pro
   return globalConfig;
 };
 
-export const getTestTileBuffer = async (): Promise<Buffer> => {
-  return promises.readFile(resolve(join(TEST_ENV_DIR_PATH, 'test-tile.png')));
-};
-
-export const waitUntilPoolIsClosed = async (ms: number): Promise<void> => {
-  await new Promise((_) => setTimeout(_, ms));
+export const getTestTileBuffer = async (tileSize: number): Promise<Buffer> => {
+  return promises.readFile(resolve(join(TEST_ENV_DIR_PATH, `test-tile-${tileSize}.png`)));
 };

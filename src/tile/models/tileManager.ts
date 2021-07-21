@@ -43,15 +43,17 @@ const isTileInBounds = (z: number, x: number, y: number): boolean => {
 export class TileManager {
   private readonly renderersPool: Pool<Map>;
   private readonly sphericalMercatorHelper: SphericalMercator;
+  private readonly tileSize: number;
 
   public constructor(
     @inject(Services.LOGGER) private readonly logger: Logger,
-    @inject(Services.APPLICATION) private readonly application: IApplicationConfig,
+    @inject(Services.APPLICATION) private readonly appConfig: IApplicationConfig,
     @inject(Services.GLOBAL) private readonly global: IGlobalConfig,
     @inject(RenderHandler) private readonly renderHandler: RenderHandler
   ) {
-    const { ratio, poolResources, tileSize } = this.application;
-    this.sphericalMercatorHelper = new SphericalMercator({ size: tileSize });
+    const { ratio, poolResources, tileSize } = this.appConfig;
+    this.tileSize = tileSize;
+    this.sphericalMercatorHelper = new SphericalMercator({ size: this.tileSize });
     this.renderersPool = this.createPool(ratio, poolResources.min, poolResources.max);
   }
 
@@ -60,11 +62,9 @@ export class TileManager {
       throw new OutOfBoundsError(`tile request for z: ${z}, x: ${x}, y: ${y} is out of bounds.`);
     }
 
-    const { tileSize } = this.application;
-
     // move half tile to the center
-    const xAxisPixelsFromCenter = (x + HALF_TILE) * tileSize;
-    const yAxisPixelsFromCenter = (y + HALF_TILE) * tileSize;
+    const xAxisPixelsFromCenter = (x + HALF_TILE) * this.tileSize;
+    const yAxisPixelsFromCenter = (y + HALF_TILE) * this.tileSize;
 
     // get the coordinates from the pixels from center of the tile and the zoom level
     const [lon, lat] = this.sphericalMercatorHelper.ll([xAxisPixelsFromCenter, yAxisPixelsFromCenter], z);
@@ -125,10 +125,9 @@ export class TileManager {
   }
 
   private getRenderParams(zoom: number, lon: number, lat: number): RenderParams {
-    const { tileSize } = this.application;
-    const renderingTileSize = zoom === 0 ? ZOOM_ZERO_TILE_SIZE : tileSize;
+    const renderingTileSize = zoom === 0 ? ZOOM_ZERO_TILE_SIZE : this.tileSize;
     return {
-      zoom: tileSize === DEFAULT_TILE_SIZE ? zoom - 1 : zoom,
+      zoom: this.tileSize === DEFAULT_TILE_SIZE ? zoom - 1 : zoom,
       center: [lon, lat],
       width: renderingTileSize,
       height: renderingTileSize,
