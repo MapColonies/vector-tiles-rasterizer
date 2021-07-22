@@ -25,8 +25,12 @@ fi
 export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
 export DISPLAY=:${displayNumber}.${screenNumber}
 
+testsToRun=""
 echo
-dumb-init npm run test "$@" &
+if [ ! -z $TESTS_TO_RUN ]; then
+  testsToRun=":${TESTS_TO_RUN}"
+fi
+dumb-init npm run test$testsToRun "$@" &
 child=$!
 wait "$child"
 

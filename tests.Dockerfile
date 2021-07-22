@@ -1,6 +1,8 @@
 FROM ubuntu:20.04 AS tester
 
 ARG NODE_VERSION=14.x
+ARG TESTS_TO_RUN=''
+ENV TESTS_TO_RUN ${TESTS_TO_RUN}
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -yq \
