@@ -15,7 +15,7 @@ a quick [example](example/README.md) for additional information
 
 ----------------------------------
 
-A proxy server written in `fastify` for rasterizing vector tiles in real time.
+A proxy server written in `fastify` for rasterizing vector tiles on the fly.
 the vector tiles can be served from any vector tiles backend e.g. `tegola` or `tileserver-gl`.
 
 ## API
@@ -25,7 +25,7 @@ Checkout the OpenAPI spec [here](/openapi3.yaml)
 
 ## Build and Run
 
-On Ubuntu 20.04 Just run the following command after installation of all dependencies
+On Ubuntu 20.04 just run the following command after installation of all dependencies
 
 # Shell
 ```sh
@@ -52,12 +52,11 @@ verctor-tiles-rasterizer:latest
 ----------------------------------
 
 ## Test
-Tests are done on a docker container,
+Tests are done on a docker container
 
-it is possible to build the container to run only unit or integration testing by passing build-arg, by default it will run both
-just add to the build command
+It is possible to build the container to run only unit or integration testing by passing `TESTS_TO_RUN=unit|integration` as a build-arg, by default it will run both
 ```sh
---build-arg TESTS_TO_RUN=unit/integration
+--build-arg TESTS_TO_RUN=unit|integration
 ```
 
 ### integration:
