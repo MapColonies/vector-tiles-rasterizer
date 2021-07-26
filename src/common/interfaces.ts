@@ -46,3 +46,8 @@ export interface RequestHandler<Params = { [key: string]: string }, ReqBody = un
 export interface FastifyPluginRegister {
   (fastify: FastifyInstance, options: RegisterOptions, done: HookHandlerDoneFunction): void;
 }
+
+export interface FastifyBodyParserOptions {
+  parseAs: string | Buffer extends Buffer ? 'buffer' : 'string';
+  bodyLimit?: number;
+}
