@@ -1,0 +1,20 @@
+{{- $releaseName := .Release.Name -}}
+{{- $chartName := include "vector-tiles-rasterizer.name" . -}}
+{{- $cloudProviderName := include "vector-tiles-rasterizer.cloudProviderName" . -}}
+{{- if and (and (.Values.enabled) (ne $cloudProviderName "minikube")) (.Values.route.enabled) -}}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ $releaseName }}-{{ $chartName }}-route
+  annotations:
+    haproxy.router.openshift.io/rewrite-target: /
+spec:
+  path:  {{ .Values.route.path | default "/" }}
+  to:
+    kind: Service
+    name: {{ $releaseName }}-{{ $chartName }}
+  {{- if .Values.route.enableTls }}
+  tls:
+    termination: edge
+  {{- end }}
+{{- end -}}

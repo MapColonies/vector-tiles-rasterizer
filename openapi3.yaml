@@ -20,33 +20,33 @@ paths:
           required: true
           schema:
             allOf:
-              - $ref: '#/components/schemas/tilePosition'
+              - $ref: '#/components/schemas/tileCoordinate'
               - maximum: 22
           description: zoom level
         - in: path
           name: 'x'
           required: true
           schema:
-            $ref: '#/components/schemas/tilePosition'
-          description: x axis tile
+            $ref: '#/components/schemas/tileCoordinate'
+          description: x axis tile coordinate
         - in: path
           name: 'y'
           required: true
           schema:
-            $ref: '#/components/schemas/tilePosition'
-          description: y axis tile
+            $ref: '#/components/schemas/tileCoordinate'
+          description: y axis tile coordinate
       responses:
         200:
           description: the requested rasterized image
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/cache-control'
           content:
             image/png:
               schema:
-                type: string
-                format: binary
+                $ref: '#/components/schemas/image'
         400:
           $ref: '#/components/responses/BadRequest'
-        404:
-          $ref: '#/components/responses/NotFound'
         '5XX':
           $ref: '#/components/responses/UnexpectedError'
 components:
@@ -62,17 +62,6 @@ components:
                   statusCode:
                     enum:
                       - 400
-    NotFound:
-      description: Not Found
-      content:
-        application/json:
-          schema:
-            allOf:
-              - $ref: '#/components/schemas/error'
-              - properties:
-                  statusCode:
-                    enum:
-                      - 404
     UnexpectedError:
       description: Unexpected Error
       content:
@@ -80,11 +69,14 @@ components:
           schema:
             $ref: '#/components/schemas/error'
   schemas:
-    tilePosition:
+    tileCoordinate:
       type: number
       format: int32
       default: 0
       minimum: 0
+    image:
+      type: string
+      format: binary
     error:
       type: object
       required:
@@ -99,3 +91,8 @@ components:
         statusCode:
           type: number
           format: int32
+  headers:
+    cache-control:
+      schema:
+        type: string
+      description: The browser caching policy

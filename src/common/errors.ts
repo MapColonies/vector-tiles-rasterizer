@@ -5,4 +5,10 @@ export interface HttpError extends Error {
   statusCode: StatusCodes;
 }
 
+export class BadRequestError extends Error {}
+
 export class NotFoundError extends Error {}
+
+export class OutOfBoundsError extends Error {}
+
+export class RequestFailedError extends Error {}

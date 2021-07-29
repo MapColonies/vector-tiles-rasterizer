@@ -1,0 +1,69 @@
+{{- $releaseName := .Release.Name -}}
+{{- $chartName := include "vector-tiles-rasterizer.name" . -}}
+{{- $cloudProviderName := include "vector-tiles-rasterizer.cloudProviderName" . -}}
+{{- $cloudProviderDockerRegistryUrl := include "vector-tiles-rasterizer.cloudProviderDockerRegistryUrl" . -}}
+{{- if .Values.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $releaseName }}-{{ $chartName }}
+  labels:
+    app: {{ $chartName }}
+    component: {{ $chartName }}-deployment
+    environment: {{ include "vector-tiles-rasterizer.environment" . }}
+    release: {{ $releaseName }}
+    {{- include "vector-tiles-rasterizer.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ $chartName }}
+      release: {{ $releaseName }}
+      run: {{ $releaseName }}-{{ $chartName }}
+      {{- include "vector-tiles-rasterizer.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: {{ $chartName }}
+        release: {{ $releaseName }}
+        run: {{ $releaseName }}-{{ $chartName }}
+        {{- include "vector-tiles-rasterizer.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ $releaseName }}-{{ $chartName }}-deployment
+          {{- with .Values.image }}
+          {{- if eq $cloudProviderName "azure" }}
+          image: {{ $cloudProviderDockerRegistryUrl }}/{{ .repository }}:{{ .tag }}
+          {{- end }}
+          {{- if eq $cloudProviderName "minikube" }}
+          image: {{ .repository }}:{{ .tag }}
+          {{- end }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ $releaseName }}-{{ $chartName }}-configmap
+          env:
+            - name: SERVER_PORT
+              value: {{ .Values.env.targetPort | quote }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.env.targetPort }}
+              protocol: {{ .Values.env.protocol }}
+          livenessProbe:
+            initialDelaySeconds: {{ .Values.initialDelaySeconds }}
+            httpGet:
+              path: /liveness
+              port: http
+          {{- if .Values.resources.enabled }}
+          resources:
+            {{- toYaml .Values.resources.value | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: styles
+              mountPath: /mnt/styles
+              readOnly: true
+      volumes:
+        - name: styles
+          configMap:
+            name: {{ $releaseName }}-{{ $chartName }}-style-configmap
+{{- end -}}

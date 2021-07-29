@@ -1,61 +1,59 @@
-// fastify register function
-/* eslint-disable @typescript-eslint/no-floating-promises */
 import { fastify, FastifyInstance } from 'fastify';
-import { inject, injectable } from 'tsyringe';
 import { Logger } from '@map-colonies/js-logger';
-import * as secureJsonParse from 'secure-json-parse';
+import { inject, injectable } from 'tsyringe';
 import fastifyCompression, { FastifyCompressOptions } from 'fastify-compress';
 import { FastifyStaticSwaggerOptions, fastifySwagger } from 'fastify-swagger';
-import httpStatus from 'http-status-codes';
+
 import { Services } from './common/constants';
-import { IConfig, OpenApiConfig } from './common/interfaces';
-import { resourceNameRoutesRegistry } from './resourceName/routes/resourceNameRouter';
-import { FastifyBodyParserOptions } from './common/types';
-import { HttpError } from './common/errors';
+import { IConfig, OpenApiConfig, FastifyBodyParserOptions } from './common/interfaces';
+import { tileRoutesRegistry } from './tile/routes/tileRouter';
+import { jsonParserHook } from './common/hooks/jsonParser';
+import { onSendHookWrapper } from './common/hooks/onSend';
+import { onCloseHookWrapper } from './common/hooks/onClose';
+import { TileManager } from './tile/models/tileManager';
 
 @injectable()
 export class ServerBuilder {
   private readonly serverInstance: FastifyInstance;
 
-  public constructor(@inject(Services.CONFIG) private readonly config: IConfig, @inject(Services.LOGGER) private readonly logger: Logger) {
+  public constructor(
+    @inject(Services.CONFIG) private readonly config: IConfig,
+    @inject(Services.LOGGER) private readonly logger: Logger,
+    @inject(TileManager) private readonly manager: TileManager
+  ) {
     this.serverInstance = fastify();
   }
 
-  public build(): FastifyInstance {
-    this.registerPreRoutesMiddleware();
-    this.buildRoutes();
+  public async build(): Promise<FastifyInstance> {
+    await this.registerPreRoutesMiddleware();
+    this.buildHooks();
+    await this.buildRoutes();
 
     return this.serverInstance;
   }
 
-  private registerPreRoutesMiddleware(): void {
+  private async registerPreRoutesMiddleware(): Promise<void> {
     if (this.config.get<boolean>('server.response.compression.enabled')) {
       const compressionOptions = this.config.get<FastifyCompressOptions>('server.response.compression.options');
-      this.serverInstance.register(fastifyCompression, compressionOptions);
+      await this.serverInstance.register(fastifyCompression, compressionOptions);
     }
 
     const bodyParserOptions = this.config.get<FastifyBodyParserOptions>('server.request.payload');
-
-    this.serverInstance.addContentTypeParser('application/json', bodyParserOptions, (req, body: string | Buffer, done) => {
-      let json;
-      try {
-        // json must be of type any
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        json = secureJsonParse.parse(body);
-      } catch (error) {
-        (error as HttpError).statusCode = httpStatus.BAD_REQUEST;
-        return done(error, undefined);
-      }
-      done(null, json);
-    });
+    this.serverInstance.addContentTypeParser('application/json', bodyParserOptions, jsonParserHook);
   }
 
-  private buildRoutes(): void {
-    this.serverInstance.register(resourceNameRoutesRegistry, { prefix: '/resourceName' });
-    this.buildDocsRoutes();
+  private buildHooks(): void {
+    const cachePeriod = this.config.get<number>('server.response.headers.cachePeriod');
+    this.serverInstance.addHook('onSend', onSendHookWrapper(cachePeriod));
+    this.serverInstance.addHook('onClose', onCloseHookWrapper(this.manager));
   }
 
-  private buildDocsRoutes(): void {
+  private async buildRoutes(): Promise<void> {
+    await this.serverInstance.register(tileRoutesRegistry);
+    await this.buildDocsRoutes();
+  }
+
+  private async buildDocsRoutes(): Promise<void> {
     const { filePath, basePath, uiPath } = this.config.get<OpenApiConfig>('openapiConfig');
 
     const swaggerOptions: FastifyStaticSwaggerOptions = {
@@ -68,6 +66,6 @@ export class ServerBuilder {
       exposeRoute: true,
     };
 
-    this.serverInstance.register(fastifySwagger, swaggerOptions);
+    await this.serverInstance.register(fastifySwagger, swaggerOptions);
   }
 }

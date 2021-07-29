@@ -20,7 +20,23 @@
       "compression": {
         "enabled": true,
         "options": null
+      },
+      "headers": {
+        "cachePeriod": 300
       }
+    }
+  },
+  "application": {
+    "styleFilePath": "",
+    "tileSize": 256,
+    "ratio": 1,
+    "poolResources": {
+      "min": 12,
+      "max": 24
+    },
+    "zoom": {
+      "min": 0,
+      "max": 22
     }
   }
 }

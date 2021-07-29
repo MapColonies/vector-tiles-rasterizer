@@ -1,0 +1,19 @@
+{{- $releaseName := .Release.Name -}}
+{{- $chartName := include "vector-tiles-rasterizer.name" . -}}
+{{- if .Values.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $releaseName }}-{{ $chartName }}-configmap
+data:
+{{- with .Values.env }}
+  LOG_LEVEL: {{ .logLevel | quote }}
+  APP_STYLE_FILE_PATH: /mnt/styles/{{ .styleFileName | default "style.json" }}
+  APP_TILE_SIZE: {{ .tileSize | quote }}
+  APP_RATIO: {{ .ratio | quote }}
+  APP_ZOOM_MIN: {{ .minZoom | quote }}
+  APP_ZOOM_MAX: {{ .maxZoom | quote }}
+  APP_POOL_RESOURCES_MIN: {{ .minPoolResources | quote }}
+  APP_POOL_RESOURCES_MAX: {{ .maxPoolResources | quote }}
+{{- end }}
+{{- end -}}

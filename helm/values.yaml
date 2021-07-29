@@ -1,0 +1,43 @@
+global:
+  cloudProvider: {}
+
+cloudProvider:
+  name: minikube
+  dockerRegistryUrl: 'some_url'
+
+enabled: true
+environment: development
+replicaCount: 1
+initialDelaySeconds: 600
+
+image:
+  repository: 'vector-tiles-rasterizer'
+  tag: 'v0.0.1'
+
+env:
+  port: 8080
+  targetPort: 8080
+  protocol: TCP
+  logLevel: info
+  ratio: 1
+  tileSize: 256
+  minZoom: 0
+  maxZoom: 22
+  styleFileName: style.json
+  minPoolResources: 12
+  maxPoolResources: 24
+
+resources:
+  enabled: false
+  value:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+route:
+  enabled: false
+  enableTls: true
+  path: /

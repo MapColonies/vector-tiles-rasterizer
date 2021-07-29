@@ -16,9 +16,7 @@ module.exports = {
       { multipleReportsUnitePath: './report', pageTitle: 'integration', publicPath: './reports', filename: 'integration.html' },
     ],
   ],
-  collectCoverage: true,
   moduleDirectories: ['node_modules', 'src'],
-  collectCoverageFrom: ['<rootDir>/src/**/*.{ts}', '!**/node_modules/**', '!**/vendor/**'],
   preset: 'ts-jest',
   testEnvironment: 'node',
   coverageThreshold: {
@@ -27,6 +25,11 @@ module.exports = {
       functions: 80,
       lines: 80,
       statements: -10,
+    },
+  },
+  globals: {
+    'ts-jest': {
+      tsConfig: 'tsconfig.lint.json',
     },
   },
 };

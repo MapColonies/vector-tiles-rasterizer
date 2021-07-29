@@ -19,6 +19,43 @@
           "__name": "RESPONSE_COMPRESSION_ENABLED",
           "__format": "boolean"
         }
+      },
+      "headers": {
+        "cachePeriod": {
+          "__name": "RESPONSE_HEADERS_CACHE_PERIOD",
+          "__format": "number"
+        }
+      }
+    }
+  },
+  "application": {
+    "styleFilePath": "APP_STYLE_FILE_PATH",
+    "tileSize": {
+      "__name": "APP_TILE_SIZE",
+      "__format": "number"
+    },
+    "ratio": {
+      "__name": "APP_RATIO",
+      "__format": "number"
+    },
+    "poolResources": {
+      "min": {
+        "__name": "APP_POOL_RESOURCES_MIN",
+        "__format": "number"
+      },
+      "max": {
+        "__name": "APP_POOL_RESOURCES_MAX",
+        "__format": "number"
+      }
+    },
+    "zoom": {
+      "min": {
+        "__name": "APP_ZOOM_MIN",
+        "__format": "number"
+      },
+      "max": {
+        "__name": "APP_ZOOM_MAX",
+        "__format": "number"
       }
     }
   }

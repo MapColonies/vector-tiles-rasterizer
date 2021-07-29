@@ -4,20 +4,34 @@ import { Logger } from '@map-colonies/js-logger';
 import { createTerminus } from '@godaddy/terminus';
 import { container } from 'tsyringe';
 import { get } from 'config';
-import { IServerConfig } from './common/interfaces';
-import { DEFAULT_SERVER_PORT, Services } from './common/constants';
 
+import { IServerConfig } from './common/interfaces';
+import { DEFAULT_SERVER_PORT, DEFAULT_APP_ADDRESS, Services } from './common/constants';
 import { getApp } from './app';
 
 const serverConfig = get<IServerConfig>('server');
 const port: number = parseInt(serverConfig.port) || DEFAULT_SERVER_PORT;
+let logger: Logger | null;
 
-const app = getApp();
-
-const logger = container.resolve<Logger>(Services.LOGGER);
 const stubHealthcheck = async (): Promise<void> => Promise.resolve();
-createTerminus(app.server, { healthChecks: { '/liveness': stubHealthcheck, onSignal: container.resolve('onSignal') } });
 
-app.listen(port, () => {
-  logger.info(`app started on port ${port}`);
-});
+async function initializeApp(): Promise<void> {
+  const app = await getApp();
+  createTerminus(app.server, { healthChecks: { '/liveness': stubHealthcheck } });
+  await app.listen(port, DEFAULT_APP_ADDRESS);
+}
+
+void initializeApp()
+  .then(() => {
+    logger = container.resolve<Logger>(Services.LOGGER);
+    logger.info(`app started on port ${port}`);
+  })
+  .catch((error: Error) => {
+    const failedMessage = '😢 - failed initializing the server';
+    if (logger) {
+      logger.error(failedMessage);
+      logger.error(error.message);
+    }
+    console.error(failedMessage);
+    console.error(error.message);
+  });
